@@ -140,11 +140,16 @@ struct HomeView: View {
         }
     }
     
-    // MARK: - Task List
+    // MARK: - Task Grid
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: DharmaTheme.Spacing.md),
+        GridItem(.flexible(), spacing: DharmaTheme.Spacing.md)
+    ]
+    
     private var taskGrid: some View {
-        VStack(spacing: DharmaTheme.Spacing.md) {
+        LazyVGrid(columns: gridColumns, spacing: DharmaTheme.Spacing.md) {
             ForEach(viewModel.tasks) { task in
-                DailyTaskRow(task: task) {
+                DailyTaskCard(task: task) {
                     handleTaskTap(task)
                 }
             }

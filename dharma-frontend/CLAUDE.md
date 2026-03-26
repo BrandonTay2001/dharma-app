@@ -20,10 +20,10 @@ dharma/
 │   └── MeditationViewModel.swift  # Timer, breathing phases, session state
 └── Views/
     ├── Home/
-    │   ├── HomeView.swift         # Dashboard: header, week strip, progress, task rows
+    │   ├── HomeView.swift         # Dashboard: header, week strip, progress, task grid
     │   ├── WeekCalendarView.swift # M–S day strip with saffron highlight on today
-    │   ├── DailyTaskCard.swift    # Grid card variant (unused, kept for reference)
-    │   └── DailyTaskRow.swift     # Horizontal row variant (active)
+    │   ├── DailyTaskCard.swift    # Grid card variant (active)
+    │   └── DailyTaskRow.swift     # Horizontal row variant (unused, kept for reference)
     ├── DailyVerse/
     │   └── DailyVerseDetailView.swift  # Full verse display with reflection & actions
     ├── Scripture/

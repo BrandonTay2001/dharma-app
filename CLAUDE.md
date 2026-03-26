@@ -14,7 +14,7 @@ dharma-app/
 ## Tech Stack
 
 - **Frontend:** SwiftUI (iOS), Xcode project at `dharma/dharma.xcodeproj`
-- **Backend:** To be placed in `dharma-backend/` (stack TBD)
+- **Backend:** Express + TypeScript in `dharma-backend/`, OpenAI for AI chat
 
 ## Core Features
 

@@ -1,12 +1,14 @@
 import SwiftUI
 
 @Observable
+@MainActor
 class ChatViewModel {
     var messages: [ChatMessage] = []
     let dailyLimit: Int = 5
     var messagesUsedToday: Int = 0
     var inputText: String = ""
     var isTyping: Bool = false
+    var errorMessage: String?
     
     var remainingMessages: Int {
         max(0, dailyLimit - messagesUsedToday)
@@ -16,34 +18,98 @@ class ChatViewModel {
         remainingMessages > 0 && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isTyping
     }
     
-    // Pre-seeded AI responses for the prototype
-    private let aiResponses: [String] = [
-        "Namaste. Mindfulness can be practiced through simple breath awareness during daily tasks. The Gita teaches that duty (dharma) should be performed without attachment to the results. It is a path to liberation. Om Shanti.",
-        "The Buddha taught the Four Noble Truths: life involves suffering (dukkha), suffering arises from craving (tanha), suffering can cease (nirodha), and the path to cessation is the Noble Eightfold Path. This is the foundation of all Buddhist practice.",
-        "In the Bhagavad Gita, Lord Krishna tells Arjuna: 'You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions.' This teaching of Nishkama Karma is central to Hindu philosophy.",
-        "The Dhammapada reminds us: 'All that we are is the result of what we have thought.' Your mind shapes your reality. Through meditation and mindful living, you can transform your thoughts and find inner peace.",
-        "Compassion (karuna) is at the heart of both Hindu and Buddhist traditions. The Dalai Lama teaches: 'If you want others to be happy, practice compassion. If you want to be happy, practice compassion.' Om Mani Padme Hum.",
-    ]
+    // Conversation history sent to the backend for context
+    private var conversationHistory: [[String: String]] = []
     
-    private var responseIndex = 0
+    func startNewConversation() {
+        messages.removeAll()
+        conversationHistory.removeAll()
+        inputText = ""
+        errorMessage = nil
+        isTyping = false
+    }
     
     func sendMessage() {
         guard canSendMessage else { return }
         
-        let userMessage = ChatMessage(text: inputText.trimmingCharacters(in: .whitespacesAndNewlines), isUser: true)
+        let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let userMessage = ChatMessage(text: trimmedText, isUser: true)
         messages.append(userMessage)
         messagesUsedToday += 1
         inputText = ""
+        errorMessage = nil
         
-        // Simulate AI response
+        // Add to conversation history
+        conversationHistory.append(["role": "user", "content": trimmedText])
+        
         isTyping = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            guard let self = self else { return }
-            let response = self.aiResponses[self.responseIndex % self.aiResponses.count]
-            let aiMessage = ChatMessage(text: response, isUser: false)
-            self.messages.append(aiMessage)
-            self.responseIndex += 1
-            self.isTyping = false
+        
+        Task {
+            await fetchAIResponse()
         }
+    }
+    
+    private func fetchAIResponse() async {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/chat") else {
+            errorMessage = "Invalid API URL"
+            isTyping = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+        
+        let body: [String: Any] = ["messages": conversationHistory]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            errorMessage = "Failed to encode request"
+            isTyping = false
+            return
+        }
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                errorMessage = "Invalid server response"
+                isTyping = false
+                return
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                // Try to parse error message from response
+                if let errorBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let serverError = errorBody["error"] as? String {
+                    errorMessage = serverError
+                } else {
+                    errorMessage = "Server error (status \(httpResponse.statusCode))"
+                }
+                isTyping = false
+                return
+            }
+            
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let reply = json["reply"] as? String else {
+                errorMessage = "Unexpected response format"
+                isTyping = false
+                return
+            }
+            
+            // Success – append assistant message
+            let aiMessage = ChatMessage(text: reply, isUser: false)
+            messages.append(aiMessage)
+            conversationHistory.append(["role": "assistant", "content": reply])
+            
+        } catch is CancellationError {
+            // Task was cancelled, no need to show error
+        } catch {
+            errorMessage = "Could not reach the server. Please check your connection."
+        }
+        
+        isTyping = false
     }
 }

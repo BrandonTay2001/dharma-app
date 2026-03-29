@@ -5,6 +5,7 @@ struct ContentView: View {
     @State private var homeViewModel = HomeViewModel()
     @State private var scriptureViewModel = ScriptureViewModel()
     @State private var chatViewModel = ChatViewModel()
+    @State private var learnViewModel = LearnViewModel()
     
     enum Tab: String {
         case chat = "Chat"
@@ -42,7 +43,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.scriptures)
             
-            LearnView()
+            LearnView(viewModel: learnViewModel)
                 .tabItem {
                     Label(Tab.learn.rawValue, systemImage: Tab.learn.icon)
                 }

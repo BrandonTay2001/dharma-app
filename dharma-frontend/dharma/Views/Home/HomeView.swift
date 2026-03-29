@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
+    @Environment(AuthViewModel.self) private var authViewModel
     @State private var showingVerseDetail = false
     @State private var showingMeditation = false
     @State private var showingMantra = false
@@ -75,7 +76,7 @@ struct HomeView: View {
                     Circle()
                         .stroke(DharmaTheme.Colors.saffron.opacity(0.3), lineWidth: 2)
                         .frame(width: 48, height: 48)
-                    Text("D")
+                    Text(authViewModel.avatarInitial)
                         .font(DharmaTheme.Typography.scriptureHeadline(22))
                         .foregroundColor(DharmaTheme.Colors.saffron)
                 }
@@ -179,5 +180,9 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(viewModel: HomeViewModel())
+    let authViewModel = AuthViewModel()
+    authViewModel.currentUserEmail = "seeker@dharma.app"
+
+    return HomeView(viewModel: HomeViewModel())
+        .environment(authViewModel)
 }

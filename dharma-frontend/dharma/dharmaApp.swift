@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct dharmaApp: App {
+    @State private var authViewModel = AuthViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if authViewModel.isAuthenticated {
+                ContentView()
+                    .environment(authViewModel)
+            } else {
+                SignInView(viewModel: authViewModel)
+            }
         }
     }
 }

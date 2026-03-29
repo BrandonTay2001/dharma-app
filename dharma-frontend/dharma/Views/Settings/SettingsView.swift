@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthViewModel.self) private var authViewModel
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,6 +26,38 @@ struct SettingsView: View {
             .padding(.top, DharmaTheme.Spacing.xl)
             .padding(.bottom, DharmaTheme.Spacing.lg)
             
+            Divider().opacity(0.3)
+
+            HStack(spacing: DharmaTheme.Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(DharmaTheme.Colors.saffron.opacity(0.12))
+                        .frame(width: 48, height: 48)
+
+                    Text(authViewModel.avatarInitial)
+                        .font(DharmaTheme.Typography.uiHeadline(18))
+                        .foregroundColor(DharmaTheme.Colors.saffron)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(authViewModel.primaryIdentityLabel)
+                        .font(DharmaTheme.Typography.uiHeadline(16))
+                        .foregroundColor(DharmaTheme.Colors.onSurface)
+                        .lineLimit(1)
+
+                    if let secondaryIdentityLabel = authViewModel.secondaryIdentityLabel {
+                        Text(secondaryIdentityLabel)
+                            .font(DharmaTheme.Typography.uiCaption())
+                            .foregroundColor(DharmaTheme.Colors.secondaryText)
+                            .lineLimit(1)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, DharmaTheme.Spacing.xl)
+            .padding(.vertical, DharmaTheme.Spacing.lg)
+
             Divider().opacity(0.3)
             
             VStack(spacing: 0) {
@@ -56,7 +89,8 @@ struct SettingsView: View {
                 
                 // Log Out
                 Button {
-                    // Log out action
+                    Task { await authViewModel.signOut() }
+                    dismiss()
                 } label: {
                     HStack(spacing: DharmaTheme.Spacing.md) {
                         Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -82,6 +116,11 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    let authViewModel = AuthViewModel()
+    authViewModel.currentUserEmail = "seeker@dharma.app"
+    authViewModel.currentUserDisplayName = "Brandon"
+
+    return SettingsView()
+        .environment(authViewModel)
         .presentationDetents([.height(350)])
 }

@@ -2,17 +2,12 @@ import SwiftUI
 
 struct GratitudeJournalView: View {
     let onDone: () -> Void
-    @State private var gratitudeText = ""
-    @State private var savedEntries: [String] = []
+    @State private var viewModel = GratitudeJournalViewModel()
     @Environment(\.dismiss) private var dismiss
-    
-    private var todayFormatted: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMMM d"
-        return formatter.string(from: Date())
-    }
-    
+
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: DharmaTheme.Spacing.xl) {
@@ -25,11 +20,27 @@ struct GratitudeJournalView: View {
                             .font(DharmaTheme.Typography.scriptureHeadline(24))
                             .foregroundColor(DharmaTheme.Colors.onSurface)
                         
-                        Text(todayFormatted)
+                        Text(viewModel.todayFormatted)
                             .font(DharmaTheme.Typography.uiCaption())
                             .foregroundColor(DharmaTheme.Colors.secondaryText)
                     }
                     .padding(.top, DharmaTheme.Spacing.xl)
+
+                    if let errorMessage = viewModel.errorMessage {
+                        statusCard(
+                            text: errorMessage,
+                            background: DharmaTheme.Colors.cardJournal.opacity(0.45),
+                            foreground: DharmaTheme.Colors.onSurface
+                        )
+                    }
+
+                    if let saveMessage = viewModel.saveMessage {
+                        statusCard(
+                            text: saveMessage,
+                            background: DharmaTheme.Colors.cardBuddhist.opacity(0.45),
+                            foreground: DharmaTheme.Colors.onSurface
+                        )
+                    }
                     
                     // Prompt
                     VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
@@ -47,7 +58,7 @@ struct GratitudeJournalView: View {
                     
                     // Text editor
                     VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
-                        TextEditor(text: $gratitudeText)
+                        TextEditor(text: $viewModel.gratitudeText)
                             .font(DharmaTheme.Typography.scriptureBody(17))
                             .lineSpacing(6)
                             .frame(minHeight: 200)
@@ -55,9 +66,29 @@ struct GratitudeJournalView: View {
                             .background(DharmaTheme.Colors.surface)
                             .cornerRadius(DharmaTheme.Radius.lg)
                             .scrollContentBackground(.hidden)
+                            .overlay(alignment: .topLeading) {
+                                if viewModel.gratitudeText.isEmpty {
+                                    Text("Write a few lines about today's blessings...")
+                                        .font(DharmaTheme.Typography.scriptureBody(17))
+                                        .foregroundColor(DharmaTheme.Colors.secondaryText.opacity(0.8))
+                                        .padding(.horizontal, DharmaTheme.Spacing.xl)
+                                        .padding(.vertical, DharmaTheme.Spacing.xl)
+                                        .allowsHitTesting(false)
+                                }
+                            }
+                            .disabled(viewModel.isLoading || viewModel.isSaving)
                         
-                        if !gratitudeText.isEmpty {
-                            Text("\(gratitudeText.count) characters")
+                        if viewModel.isLoading {
+                            HStack(spacing: DharmaTheme.Spacing.sm) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Loading your saved reflections...")
+                                    .font(DharmaTheme.Typography.uiCaption(11))
+                                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+                            }
+                            .padding(.leading, DharmaTheme.Spacing.sm)
+                        } else if !viewModel.gratitudeText.isEmpty {
+                            Text("\(viewModel.gratitudeText.count) characters")
                                 .font(DharmaTheme.Typography.uiCaption(11))
                                 .foregroundColor(DharmaTheme.Colors.secondaryText)
                                 .padding(.leading, DharmaTheme.Spacing.sm)
@@ -82,20 +113,27 @@ struct GratitudeJournalView: View {
                     .padding(.horizontal, DharmaTheme.Spacing.sm)
                     
                     // Previous entries (if any)
-                    if !savedEntries.isEmpty {
+                    if !viewModel.previousEntries.isEmpty {
                         VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
                             Text("Previous entries")
                                 .font(DharmaTheme.Typography.uiCaption())
                                 .foregroundColor(DharmaTheme.Colors.secondaryText)
                             
-                            ForEach(savedEntries, id: \.self) { entry in
-                                Text(entry)
-                                    .font(DharmaTheme.Typography.uiBody(14))
-                                    .foregroundColor(DharmaTheme.Colors.onSurface)
-                                    .padding(DharmaTheme.Spacing.md)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(DharmaTheme.Colors.surface)
-                                    .cornerRadius(DharmaTheme.Radius.md)
+                            ForEach(viewModel.previousEntries) { entry in
+                                VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xs) {
+                                    Text(entry.displayDate)
+                                        .font(DharmaTheme.Typography.uiCaption(12))
+                                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+
+                                    Text(entry.content)
+                                        .font(DharmaTheme.Typography.uiBody(14))
+                                        .foregroundColor(DharmaTheme.Colors.onSurface)
+                                        .lineSpacing(4)
+                                }
+                                .padding(DharmaTheme.Spacing.md)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(DharmaTheme.Colors.surface)
+                                .cornerRadius(DharmaTheme.Radius.md)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -109,13 +147,16 @@ struct GratitudeJournalView: View {
             .safeAreaInset(edge: .bottom) {
                 HStack {
                     Spacer()
-                    Button("Save & Done") {
-                        if !gratitudeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            savedEntries.append(gratitudeText)
+                    Button(viewModel.saveButtonTitle) {
+                        Task {
+                            let didSave = await viewModel.saveEntry()
+                            if didSave {
+                                onDone()
+                            }
                         }
-                        onDone()
                     }
                     .buttonStyle(.saffron)
+                    .disabled(!viewModel.hasText || viewModel.isLoading || viewModel.isSaving)
                     Spacer()
                 }
                 .padding(.vertical, DharmaTheme.Spacing.md)
@@ -136,14 +177,17 @@ struct GratitudeJournalView: View {
                 }
             }
         }
+        .task {
+            await viewModel.loadEntries()
+        }
     }
     
     private func promptChip(_ text: String) -> some View {
         Button {
-            if gratitudeText.isEmpty {
-                gratitudeText = text + "... "
+            if viewModel.gratitudeText.isEmpty {
+                viewModel.gratitudeText = text + "... "
             } else {
-                gratitudeText += "\n" + text + "... "
+                viewModel.gratitudeText += "\n" + text + "... "
             }
         } label: {
             Text(text)
@@ -154,6 +198,17 @@ struct GratitudeJournalView: View {
                 .background(DharmaTheme.Colors.surface)
                 .cornerRadius(DharmaTheme.Radius.xl)
         }
+        .disabled(viewModel.isLoading || viewModel.isSaving)
+    }
+
+    private func statusCard(text: String, background: Color, foreground: Color) -> some View {
+        Text(text)
+            .font(DharmaTheme.Typography.uiBody(14))
+            .foregroundColor(foreground)
+            .padding(DharmaTheme.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(background)
+            .cornerRadius(DharmaTheme.Radius.md)
     }
 }
 

@@ -1,35 +1,28 @@
 import SwiftUI
+import UIKit
 
 struct DailyVerseDetailView: View {
     let verseType: DailyTask.TaskType
     let onDone: () -> Void
+    let onChatToLearnMore: () -> Void
     @State private var showReflection = false
-    @State private var reflectionText = ""
+    @State private var viewModel: DailyVerseReflectionViewModel
     @Environment(\.dismiss) private var dismiss
-    
-    private var verseTitle: String {
-        switch verseType {
-        case .hinduVerse:
-            return "VERSE OF THE DAY • GITA"
-        case .buddhistVerse:
-            return "VERSE OF THE DAY • DHAMMAPADA"
-        default:
-            return "VERSE OF THE DAY"
-        }
-    }
-    
-    private var verseText: String {
-        switch verseType {
-        case .hinduVerse:
-            return "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself to be the cause of the results of your activities, nor be attached to inaction.\n\n— Bhagavad Gita 2.47"
-        case .buddhistVerse:
-            return "All that we are is the result of what we have thought: it is founded on our thoughts, it is made up of our thoughts. If a man speaks or acts with a pure thought, happiness follows him, like a shadow that never leaves him.\n\n— Dhammapada 1.2"
-        default:
-            return "O Seeker of Truth, open your heart to the path of enlightenment. Embrace the wisdom that guides you towards inner peace and understanding."
-        }
+    @Environment(\.scenePhase) private var scenePhase
+
+    init(verseType: DailyTask.TaskType, onDone: @escaping () -> Void, onChatToLearnMore: @escaping () -> Void) {
+        self.verseType = verseType
+        self.onDone = onDone
+        self.onChatToLearnMore = onChatToLearnMore
+
+        let viewModel = DailyVerseReflectionViewModel(verseType: verseType)
+        _viewModel = State(initialValue: viewModel)
+        _showReflection = State(initialValue: viewModel.hasReflection)
     }
     
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
@@ -42,13 +35,13 @@ struct DailyVerseDetailView: View {
                                 .padding(.top, DharmaTheme.Spacing.xxl)
                             
                             // Label
-                            Text(verseTitle)
+                            Text(verseType.verseTitle)
                                 .font(DharmaTheme.Typography.uiLabel(13))
                                 .foregroundColor(DharmaTheme.Colors.saffron)
                                 .tracking(1.5)
                             
                             // Verse text
-                            Text(verseText)
+                            Text(verseType.verseText)
                                 .font(DharmaTheme.Typography.scriptureBody(20))
                                 .foregroundColor(DharmaTheme.Colors.onSurface)
                                 .multilineTextAlignment(.center)
@@ -68,13 +61,25 @@ struct DailyVerseDetailView: View {
                                     .font(DharmaTheme.Typography.uiHeadline(16))
                                     .foregroundColor(DharmaTheme.Colors.onSurface)
                                 
-                                TextEditor(text: $reflectionText)
+                                TextEditor(text: $viewModel.reflectionText)
                                     .font(DharmaTheme.Typography.uiBody())
                                     .frame(minHeight: 100)
                                     .padding(DharmaTheme.Spacing.sm)
                                     .background(DharmaTheme.Colors.surface)
                                     .cornerRadius(DharmaTheme.Radius.md)
                                     .scrollContentBackground(.hidden)
+
+                                HStack {
+                                    Text(viewModel.storageHint)
+                                        .font(DharmaTheme.Typography.uiCaption(11))
+                                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+
+                                    Spacer()
+
+                                    Text("\(viewModel.characterCount) characters")
+                                        .font(DharmaTheme.Typography.uiCaption(11))
+                                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+                                }
                             }
                             .padding(.horizontal, DharmaTheme.Spacing.sm)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -93,14 +98,14 @@ struct DailyVerseDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "pencil.circle")
                                 .font(.system(size: 16))
-                            Text("Reflection")
+                            Text(viewModel.hasReflection ? "Edit reflection" : "Reflection")
                                 .font(DharmaTheme.Typography.uiCaption())
                         }
                     }
                     .buttonStyle(.ghost)
                     
                     Button {
-                        // Chat to learn more action (placeholder)
+                        onChatToLearnMore()
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "bubble.left.fill")
@@ -147,9 +152,18 @@ struct DailyVerseDetailView: View {
                 }
             }
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            viewModel.loadReflection()
+            showReflection = viewModel.hasReflection
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            viewModel.loadReflection()
+            showReflection = viewModel.hasReflection
+        }
     }
 }
 
 #Preview {
-    DailyVerseDetailView(verseType: .hinduVerse) {}
+    DailyVerseDetailView(verseType: .hinduVerse, onDone: {}, onChatToLearnMore: {})
 }

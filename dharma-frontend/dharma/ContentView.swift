@@ -31,7 +31,10 @@ struct ContentView: View {
                 }
                 .tag(Tab.chat)
             
-            HomeView(viewModel: homeViewModel)
+            HomeView(
+                viewModel: homeViewModel,
+                openVerseExplanationChat: openVerseExplanationChat
+            )
                 .tabItem {
                     Label(Tab.today.rawValue, systemImage: Tab.today.icon)
                 }
@@ -50,6 +53,14 @@ struct ContentView: View {
                 .tag(Tab.learn)
         }
         .tint(DharmaTheme.Colors.saffron)
+    }
+
+    private func openVerseExplanationChat(for verseType: DailyTask.TaskType) {
+        chatViewModel.sendPrefilledMessage(
+            verseType.verseExplanationPrompt,
+            resetConversation: true
+        )
+        selectedTab = .chat
     }
 }
 

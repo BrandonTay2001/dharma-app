@@ -33,13 +33,22 @@ class LearnViewModel {
                 return
             }
 
-            guard httpResponse.statusCode == 200 else {
+            guard (200...299).contains(httpResponse.statusCode) || httpResponse.statusCode == 304 else {
                 if let errorBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let serverError = errorBody["error"] as? String {
                     errorMessage = serverError
                 } else {
                     errorMessage = "Server error (status \(httpResponse.statusCode))"
                 }
+                isLoading = false
+                return
+            }
+
+            if httpResponse.statusCode == 304 {
+                if let cachedArticles = cachedArticles(for: request) {
+                    articles = cachedArticles
+                }
+                hasLoaded = !articles.isEmpty
                 isLoading = false
                 return
             }
@@ -53,5 +62,14 @@ class LearnViewModel {
         }
 
         isLoading = false
+    }
+
+    private func cachedArticles(for request: URLRequest) -> [LearnArticle]? {
+        guard let cachedResponse = URLCache.shared.cachedResponse(for: request) else {
+            return nil
+        }
+
+        let decoded = try? JSONDecoder().decode(LearnArticlesResponse.self, from: cachedResponse.data)
+        return decoded?.articles
     }
 }

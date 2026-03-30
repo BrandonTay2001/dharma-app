@@ -1,8 +1,11 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
+    let openVerseExplanationChat: (DailyTask.TaskType) -> Void
     @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showingVerseDetail = false
     @State private var showingMeditation = false
     @State private var showingMantra = false
@@ -37,6 +40,11 @@ struct HomeView: View {
                         markTaskDone(type)
                     }
                     showingVerseDetail = false
+                },
+                onChatToLearnMore: {
+                    guard let type = selectedVerseType else { return }
+                    showingVerseDetail = false
+                    openVerseExplanationChat(type)
                 }
             )
         }
@@ -62,6 +70,21 @@ struct HomeView: View {
             SettingsView()
                 .presentationDetents([.height(350)])
                 .presentationDragIndicator(.visible)
+        }
+        .task {
+            await viewModel.refreshForCurrentContext()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+
+            Task {
+                await viewModel.refreshForCurrentContext()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            Task {
+                await viewModel.refreshForCurrentContext()
+            }
         }
     }
     
@@ -183,6 +206,6 @@ struct HomeView: View {
     let authViewModel = AuthViewModel()
     authViewModel.currentUserEmail = "seeker@dharma.app"
 
-    return HomeView(viewModel: HomeViewModel())
+    return HomeView(viewModel: HomeViewModel(), openVerseExplanationChat: { _ in })
         .environment(authViewModel)
 }

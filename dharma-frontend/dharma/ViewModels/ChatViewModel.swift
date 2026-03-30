@@ -28,6 +28,26 @@ class ChatViewModel {
         errorMessage = nil
         isTyping = false
     }
+
+    func sendPrefilledMessage(_ text: String, resetConversation: Bool = false) {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedText.isEmpty else { return }
+
+        if resetConversation {
+            startNewConversation()
+        }
+
+        guard remainingMessages > 0 else {
+            errorMessage = "You've reached today's 5-question limit."
+            return
+        }
+
+        guard !isTyping else { return }
+
+        inputText = trimmedText
+        sendMessage()
+    }
     
     func sendMessage() {
         guard canSendMessage else { return }

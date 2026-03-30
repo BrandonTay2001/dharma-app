@@ -7,7 +7,8 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { createOpenAIClient } from "./lib/openai";
-import { createSupabaseClient } from "./lib/supabase";
+import { createSupabaseAdminClient, createSupabaseClient } from "./lib/supabase";
+import { createAccountRouter } from "./routes/account";
 import { createArticlesRouter } from "./routes/articles";
 import { createChatRouter } from "./routes/chat";
 
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 // Init OpenAI client after dotenv has loaded
 const openai = createOpenAIClient();
 const supabase = createSupabaseClient();
+const supabaseAdmin = createSupabaseAdminClient();
 
 // Middleware
 app.use(morgan("dev")); // HTTP request logging
@@ -28,6 +30,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use("/api/account", createAccountRouter(supabaseAdmin));
 app.use("/api/chat", createChatRouter(openai));
 app.use("/api/articles", createArticlesRouter(supabase));
 

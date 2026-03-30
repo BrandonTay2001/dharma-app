@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
+    @State private var showingDeleteAccountConfirmation = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -107,11 +108,62 @@ struct SettingsView: View {
                     .padding(.horizontal, DharmaTheme.Spacing.xl)
                     .padding(.vertical, DharmaTheme.Spacing.lg)
                 }
+                .disabled(authViewModel.isDeletingAccount)
+
+                Divider().padding(.leading, 68).opacity(0.3)
+
+                Button {
+                    showingDeleteAccountConfirmation = true
+                } label: {
+                    HStack(spacing: DharmaTheme.Spacing.md) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 20))
+                            .foregroundColor(.red.opacity(0.8))
+                            .frame(width: 28)
+
+                        Text(authViewModel.isDeletingAccount ? "Deleting Account..." : "Delete Account")
+                            .font(DharmaTheme.Typography.uiBody())
+                            .foregroundColor(.red.opacity(0.8))
+
+                        Spacer()
+
+                        if authViewModel.isDeletingAccount {
+                            ProgressView()
+                                .tint(.red.opacity(0.8))
+                        }
+                    }
+                    .padding(.horizontal, DharmaTheme.Spacing.xl)
+                    .padding(.vertical, DharmaTheme.Spacing.lg)
+                }
+                .disabled(authViewModel.isDeletingAccount)
+            }
+
+            if let errorMessage = authViewModel.errorMessage {
+                Text(errorMessage)
+                    .font(DharmaTheme.Typography.uiCaption())
+                    .foregroundColor(.red.opacity(0.85))
+                    .padding(.horizontal, DharmaTheme.Spacing.xl)
+                    .padding(.top, DharmaTheme.Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             
             Spacer()
         }
         .background(Color.white)
+        .alert("Delete account?", isPresented: $showingDeleteAccountConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                Task {
+                    let deleted = await authViewModel.deleteAccount()
+
+                    if deleted {
+                        dismiss()
+                    }
+                }
+            }
+        } message: {
+            Text("This permanently removes your Dharma account and all data tied to it, including your profile, journal entries, streaks, and daily completion history. You will not be able to sign in again with this account.")
+        }
     }
 }
 
@@ -122,5 +174,5 @@ struct SettingsView: View {
 
     return SettingsView()
         .environment(authViewModel)
-        .presentationDetents([.height(350)])
+        .presentationDetents([.height(430)])
 }

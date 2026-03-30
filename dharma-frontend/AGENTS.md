@@ -60,8 +60,11 @@ dharma/
 - Navigation: `TabView` at root, `.sheet` / `.fullScreenCover` for detail screens
 - Chat has a hardcoded daily limit of 5 messages (prototype)
 - Scripture data is hardcoded in `Scripture.swift` — backend integration later
+- User streaks are stored in the `user_streaks` Supabase table with `current_streak`, `longest_streak`, and `last_active_date`
+- `UserStreakService.completeDay` updates streaks when a full day of tasks is completed, preserving same-day idempotency and consecutive-day logic
 - Daily task completion dates are tracked in the `daily_completions` Supabase table (upserted when all tasks are done)
 - `HomeViewModel` fetches the last 7 days of completions to highlight completed days in `WeekCalendarView`
+- `HomeViewModel.refreshForCurrentContext()` reloads both streak count and recent completion dates from Supabase
 - Day changes are handled via `significantTimeChangeNotification` and `scenePhase` observers
 
 ## Building

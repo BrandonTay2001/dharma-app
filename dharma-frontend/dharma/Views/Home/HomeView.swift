@@ -68,7 +68,7 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
-                .presentationDetents([.height(350)])
+                .presentationDetents([.height(430)])
                 .presentationDragIndicator(.visible)
         }
         .task {

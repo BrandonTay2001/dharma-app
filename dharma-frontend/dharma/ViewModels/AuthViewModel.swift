@@ -7,6 +7,7 @@ final class AuthViewModel {
     var email = ""
     var password = ""
     var isLoading = false
+    var isDeletingAccount = false
     var errorMessage: String?
     var isAuthenticated = false
     var currentUserEmail: String?
@@ -151,6 +152,73 @@ final class AuthViewModel {
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    func deleteAccount() async -> Bool {
+        await MainActor.run {
+            self.isDeletingAccount = true
+            self.errorMessage = nil
+        }
+
+        do {
+            let session = try await supabase.auth.session
+
+            guard let url = URL(string: "\(APIConfig.baseURL)/api/account") else {
+                await MainActor.run {
+                    self.errorMessage = "Invalid API URL"
+                    self.isDeletingAccount = false
+                }
+                return false
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "DELETE"
+            request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
+            request.timeoutInterval = 30
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                await MainActor.run {
+                    self.errorMessage = "Invalid server response"
+                    self.isDeletingAccount = false
+                }
+                return false
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                if let errorBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let serverError = errorBody["error"] as? String {
+                    await MainActor.run {
+                        self.errorMessage = serverError
+                        self.isDeletingAccount = false
+                    }
+                } else {
+                    await MainActor.run {
+                        self.errorMessage = "Server error (status \(httpResponse.statusCode))"
+                        self.isDeletingAccount = false
+                    }
+                }
+                return false
+            }
+
+            try? await supabase.auth.signOut()
+
+            await MainActor.run {
+                self.isAuthenticated = false
+                self.clearCurrentUser()
+                self.clearForm()
+                self.isDeletingAccount = false
+            }
+
+            return true
+        } catch {
+            await MainActor.run {
+                self.errorMessage = "Could not delete your account. Please try again."
+                self.isDeletingAccount = false
+            }
+            return false
         }
     }
 

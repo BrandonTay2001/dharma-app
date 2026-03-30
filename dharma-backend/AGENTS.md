@@ -20,6 +20,7 @@ dharma-backend/
 
 | Method | Path          | Description                    |
 |--------|---------------|--------------------------------|
+| DELETE | /api/account  | Delete the authenticated user  |
 | POST   | /api/chat     | Send messages, get AI response |
 | GET    | /api/health   | Health check                   |
 
@@ -41,9 +42,15 @@ dharma-backend/
 }
 ```
 
+### DELETE /api/account
+
+Requires an `Authorization: Bearer <access-token>` header for the currently signed-in user.
+
+Deletes the Supabase auth user. Because `public.users` now cascades from `auth.users`, this also removes the user's profile row and all dependent app data.
+
 ## Running
 
-1. Copy `.env.example` to `.env` and add your `OPENAI_API_KEY`
+1. Copy `.env.example` to `.env` and add your `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
 2. `npm install`
 3. `npm run dev` — starts with hot reload on port 3000
 

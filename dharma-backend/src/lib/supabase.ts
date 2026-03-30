@@ -21,3 +21,23 @@ export function createSupabaseClient(): SupabaseClient {
         },
     });
 }
+
+export function createSupabaseAdminClient(): SupabaseClient {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl) {
+        throw new Error("SUPABASE_URL is not set in environment variables");
+    }
+
+    if (!serviceRoleKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin operations");
+    }
+
+    return createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    });
+}

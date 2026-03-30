@@ -8,6 +8,7 @@ import Supabase
 final class HomeViewModel {
     var tasks: [DailyTask] = DailyTask.sampleTasks
     var streakCount: Int = 0
+    var completedDates: Set<String> = []
 
     private let progressStore: DailyTaskProgressStore
     private let streakService: UserStreakService
@@ -42,6 +43,7 @@ final class HomeViewModel {
         await loadCurrentUser()
         applyStoredProgress()
         await loadStreakCount()
+        await loadCompletedDates()
         await syncCompletedDayIfNeeded()
     }
     
@@ -69,7 +71,7 @@ final class HomeViewModel {
     }
     
     // Current week dates
-    var weekDates: [(dayLabel: String, dateNumber: Int, isToday: Bool)] {
+    var weekDates: [(dayLabel: String, dateNumber: Int, isToday: Bool, isCompleted: Bool)] {
         let calendar = Calendar.current
         let today = Date()
         let weekday = calendar.component(.weekday, from: today)
@@ -82,7 +84,9 @@ final class HomeViewModel {
             let date = calendar.date(byAdding: .day, value: mondayOffset + i, to: today)!
             let day = calendar.component(.day, from: date)
             let isToday = calendar.isDateInToday(date)
-            return (dayLabels[i], day, isToday)
+            let dateKey = Self.dayFormatter.string(from: date)
+            let isCompleted = completedDates.contains(dateKey)
+            return (dayLabels[i], day, isToday, isCompleted)
         }
     }
 
@@ -119,6 +123,31 @@ final class HomeViewModel {
         }
     }
 
+    private func loadCompletedDates() async {
+        guard let currentUserId else {
+            completedDates = []
+            return
+        }
+
+        let calendar = Calendar.current
+        let today = Date()
+        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: today) else { return }
+        let fromDate = Self.dayFormatter.string(from: sevenDaysAgo)
+
+        do {
+            let records: [DailyCompletionRecord] = try await supabase
+                .from("daily_completions")
+                .select("completed_date")
+                .eq("user_id", value: currentUserId.uuidString.lowercased())
+                .gte("completed_date", value: fromDate)
+                .execute()
+                .value
+            completedDates = Set(records.map(\.completedDate))
+        } catch {
+            completedDates = []
+        }
+    }
+
     private func syncCompletedDayIfNeeded() async {
         guard progressPercentage >= 1 else { return }
         guard let currentUserId else { return }
@@ -128,10 +157,47 @@ final class HomeViewModel {
 
         do {
             streakCount = try await streakService.completeDay(for: currentUserId, dayKey: state.dayKey)
+
+            try await supabase
+                .from("daily_completions")
+                .upsert(
+                    DailyCompletionInsert(userId: currentUserId, completedDate: state.dayKey),
+                    onConflict: "user_id,completed_date"
+                )
+                .execute()
+            completedDates.insert(state.dayKey)
+
             progressStore.markStreakCompletionSynced(for: currentUserId)
         } catch {
             return
         }
+    }
+
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
+private struct DailyCompletionRecord: Decodable {
+    let completedDate: String
+
+    enum CodingKeys: String, CodingKey {
+        case completedDate = "completed_date"
+    }
+}
+
+private struct DailyCompletionInsert: Encodable {
+    let userId: UUID
+    let completedDate: String
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case completedDate = "completed_date"
     }
 }
 

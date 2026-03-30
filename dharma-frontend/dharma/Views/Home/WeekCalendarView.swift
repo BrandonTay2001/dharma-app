@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WeekCalendarView: View {
-    let dates: [(dayLabel: String, dateNumber: Int, isToday: Bool)]
+    let dates: [(dayLabel: String, dateNumber: Int, isToday: Bool, isCompleted: Bool)]
     
     var body: some View {
         HStack(spacing: 0) {
@@ -17,7 +17,11 @@ struct WeekCalendarView: View {
                         .fontWeight(item.isToday ? .bold : .medium)
                     
                     ZStack {
-                        if item.isToday {
+                        if item.isCompleted {
+                            Circle()
+                                .fill(DharmaTheme.Colors.saffron)
+                                .frame(width: 38, height: 38)
+                        } else if item.isToday {
                             Circle()
                                 .stroke(DharmaTheme.Colors.saffron, lineWidth: 2.5)
                                 .frame(width: 38, height: 38)
@@ -30,11 +34,13 @@ struct WeekCalendarView: View {
                         Text("\(item.dateNumber)")
                             .font(DharmaTheme.Typography.uiBody(15))
                             .foregroundColor(
-                                item.isToday
-                                    ? DharmaTheme.Colors.onSurface
-                                    : DharmaTheme.Colors.secondaryText
+                                item.isCompleted
+                                    ? .white
+                                    : item.isToday
+                                        ? DharmaTheme.Colors.onSurface
+                                        : DharmaTheme.Colors.secondaryText
                             )
-                            .fontWeight(item.isToday ? .semibold : .regular)
+                            .fontWeight(item.isToday || item.isCompleted ? .semibold : .regular)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -46,13 +52,13 @@ struct WeekCalendarView: View {
 
 #Preview {
     WeekCalendarView(dates: [
-        ("M", 24, true),
-        ("T", 25, false),
-        ("W", 26, false),
-        ("T", 27, false),
-        ("F", 28, false),
-        ("S", 29, false),
-        ("S", 30, false)
+        ("M", 24, false, true),
+        ("T", 25, false, true),
+        ("W", 26, true, false),
+        ("T", 27, false, false),
+        ("F", 28, false, false),
+        ("S", 29, false, false),
+        ("S", 30, false, false)
     ])
     .padding()
 }

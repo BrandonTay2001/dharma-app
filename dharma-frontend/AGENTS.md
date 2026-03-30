@@ -14,14 +14,14 @@ dharma/
 │   ├── DailyTask.swift            # Daily task model + sample tasks
 │   └── MeditationStep.swift       # Meditation breathing phases
 ├── ViewModels/
-│   ├── HomeViewModel.swift        # Daily tasks, streak, progress, week calendar
+│   ├── HomeViewModel.swift        # Daily tasks, streak, progress, week calendar, daily completions
 │   ├── ScriptureViewModel.swift   # Scripture/chapter selection & navigation
 │   ├── ChatViewModel.swift        # Message list, 5/day limit, mock AI responses
 │   └── MeditationViewModel.swift  # Timer, breathing phases, session state
 └── Views/
     ├── Home/
     │   ├── HomeView.swift         # Dashboard: header, week strip, progress, task grid
-    │   ├── WeekCalendarView.swift # M–S day strip with saffron highlight on today
+    │   ├── WeekCalendarView.swift # M–S day strip; saffron stroke on today, filled saffron on completed days
     │   ├── DailyTaskCard.swift    # Grid card variant (active)
     │   └── DailyTaskRow.swift     # Horizontal row variant (unused, kept for reference)
     ├── DailyVerse/
@@ -60,6 +60,9 @@ dharma/
 - Navigation: `TabView` at root, `.sheet` / `.fullScreenCover` for detail screens
 - Chat has a hardcoded daily limit of 5 messages (prototype)
 - Scripture data is hardcoded in `Scripture.swift` — backend integration later
+- Daily task completion dates are tracked in the `daily_completions` Supabase table (upserted when all tasks are done)
+- `HomeViewModel` fetches the last 7 days of completions to highlight completed days in `WeekCalendarView`
+- Day changes are handled via `significantTimeChangeNotification` and `scenePhase` observers
 
 ## Building
 

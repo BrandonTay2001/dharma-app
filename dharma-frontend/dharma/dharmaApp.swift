@@ -10,15 +10,23 @@ import SwiftUI
 @main
 struct dharmaApp: App {
     @State private var authViewModel = AuthViewModel()
+    @State private var superwallViewModel = SuperwallViewModel.shared
     
     var body: some Scene {
         WindowGroup {
-            if authViewModel.isAuthenticated {
-                ContentView()
-                    .environment(authViewModel)
-            } else {
-                SignInView(viewModel: authViewModel)
+            Group {
+                if superwallViewModel.hasUnlockedAuthFlow {
+                    if authViewModel.isAuthenticated {
+                        ContentView()
+                    } else {
+                        SignInView(viewModel: authViewModel)
+                    }
+                } else {
+                    WelcomeView(viewModel: superwallViewModel)
+                }
             }
+            .environment(authViewModel)
+            .environment(superwallViewModel)
         }
     }
 }

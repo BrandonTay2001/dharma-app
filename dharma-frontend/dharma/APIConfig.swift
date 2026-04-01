@@ -6,4 +6,6 @@ enum APIConfig {
     #else
     static let baseURL = "https://api.yourproductiondomain.com" // TBD – update for production
     #endif
+
+    static let superwallPublicAPIKey = "pk_akJCgEmcKQ84wy2lO5C68"
 }

@@ -71,6 +71,10 @@ dharma/
 
 Open `dharma.xcodeproj` in Xcode, select an iOS Simulator, and run (⌘R).
 
+## Paywall
+
+- Refer to `paywall.md` for the current Superwall integration, placement names, onboarding gating flow, and auth unlock behavior
+
 ## Importing
 
 If external dependencies are required like Supabase, please ensure that the necessary import statement is present in the files!

@@ -1,0 +1,107 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "8274DF34",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6761377650",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "96ZFT3PD83",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 796672034.37963998,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22004701",
+      "localizations" : [
+
+      ],
+      "name" : "all access",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "12.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6761377767",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Dharma's monthly plan",
+              "displayName" : "Dharma monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "xyz.618263.monthly_12.99",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly 12.99",
+          "subscriptionGroupID" : "22004701",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "59.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6761378060",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Dharma's yearly plan",
+              "displayName" : "Yearly Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "xyz.618263.dharma_annual_59.99",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly 59.99",
+          "subscriptionGroupID" : "22004701",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

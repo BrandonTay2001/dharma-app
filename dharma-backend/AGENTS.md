@@ -20,11 +20,36 @@ dharma-backend/
 
 | Method | Path          | Description                    |
 |--------|---------------|--------------------------------|
+| GET    | /api/articles | Fetch all learn articles       |
 | DELETE | /api/account  | Delete the authenticated user  |
 | POST   | /api/chat     | Send messages, get AI response |
 | GET    | /api/health   | Health check                   |
 
+### GET /api/articles
+
+Fetches all learn articles from the database ordered by creation date and title.
+
+**Response:**
+```json
+{
+  "articles": [
+    {
+      "id": "uuid",
+      "title": "Understanding Dharma",
+      "subtitle": "A foundational guide",
+      "image_url": "https://...",
+      "tags": ["dharma", "buddhism"],
+      "estimated_read_mins": 5,
+      "content": "Article content here...",
+      "created_at": "2025-03-29T12:00:00Z"
+    }
+  ]
+}
+```
+
 ### POST /api/chat
+
+Sends a message to the AI spiritual guide and receives a compassionate response based on Buddhist and Hindu teachings.
 
 **Request:**
 ```json
@@ -44,7 +69,11 @@ dharma-backend/
 
 ### DELETE /api/account
 
-Requires an `Authorization: Bearer <access-token>` header for the currently signed-in user.
+Deletes the authenticated user's account and all associated data.
+
+**Auth:** Requires an `Authorization: Bearer <access-token>` header for the currently signed-in user.
+
+**Response:** 204 No Content
 
 Deletes the Supabase auth user. Because `public.users` now cascades from `auth.users`, this also removes the user's profile row and all dependent app data.
 

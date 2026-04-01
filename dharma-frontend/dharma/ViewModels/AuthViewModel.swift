@@ -48,11 +48,13 @@ final class AuthViewModel {
     func checkSession() async {
         do {
             let session = try await supabase.auth.session
+            SuperwallViewModel.identifyCurrentUser(session.user)
             await MainActor.run {
                 self.isAuthenticated = true
             }
             await updateCurrentUser(from: session.user)
         } catch {
+            SuperwallViewModel.resetIdentity()
             await MainActor.run {
                 self.isAuthenticated = false
                 self.clearCurrentUser()
@@ -74,6 +76,7 @@ final class AuthViewModel {
                 email: email,
                 password: password
             )
+            SuperwallViewModel.identifyCurrentUser(session.user)
             await updateCurrentUser(from: session.user)
             await MainActor.run {
                 self.isAuthenticated = true
@@ -118,12 +121,14 @@ final class AuthViewModel {
             
             // If Supabase returns a session, the user is auto-confirmed
             if let session = response.session {
+                SuperwallViewModel.identifyCurrentUser(session.user)
                 await updateCurrentUser(from: session.user)
                 await MainActor.run {
                     self.isAuthenticated = true
                     self.clearForm()
                 }
             } else {
+                SuperwallViewModel.identifyCurrentUser(response.user)
                 await updateCurrentUser(from: response.user)
                 await MainActor.run {
                     self.errorMessage = "Check your email to confirm your account."
@@ -144,6 +149,7 @@ final class AuthViewModel {
     func signOut() async {
         do {
             try await supabase.auth.signOut()
+            SuperwallViewModel.resetIdentity()
             await MainActor.run {
                 self.isAuthenticated = false
                 self.clearCurrentUser()
@@ -204,6 +210,7 @@ final class AuthViewModel {
             }
 
             try? await supabase.auth.signOut()
+            SuperwallViewModel.resetIdentity()
 
             await MainActor.run {
                 self.isAuthenticated = false

@@ -24,7 +24,7 @@
     "_developerTeamID" : "96ZFT3PD83",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 796672034.37963998,
+    "_lastSynchronizedDate" : 796758668.02020705,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -63,6 +63,62 @@
           "productID" : "xyz.618263.monthly_12.99",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly 12.99",
+          "subscriptionGroupID" : "22004701",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "6.49",
+          "familyShareable" : false,
+          "groupNumber" : 4,
+          "internalID" : "6761492681",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Dharma's monthly plan",
+              "displayName" : "Dharma monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "xyz.618263.dharma_monthly_6.49",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly 6.49",
+          "subscriptionGroupID" : "22004701",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 3,
+          "internalID" : "6761495273",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Dharma's yearly plan",
+              "displayName" : "Yearly Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "xyz.618263.dharma_yearly_29.99",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly 29.99",
           "subscriptionGroupID" : "22004701",
           "type" : "RecurringSubscription",
           "winbackOffers" : [

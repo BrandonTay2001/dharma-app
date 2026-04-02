@@ -102,11 +102,6 @@ struct WelcomeView: View {
             }
             .buttonStyle(.saffron)
 
-            Text("Continue opens the subscription paywall. If you dismiss it, you will remain on this welcome screen until access is unlocked.")
-                .font(DharmaTheme.Typography.uiCaption())
-                .foregroundColor(DharmaTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
-
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(DharmaTheme.Typography.uiCaption())

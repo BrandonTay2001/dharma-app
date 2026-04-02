@@ -2,3 +2,9 @@
 /dharma-backend/node_modules
 /dharma-backend/.env
 /dharma-backend/dist
+/screenshots
+/simulator-screenshots
+.agents
+.claude
+.vscode
+skills-lock.json

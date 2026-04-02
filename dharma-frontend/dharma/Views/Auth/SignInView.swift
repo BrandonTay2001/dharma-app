@@ -75,6 +75,32 @@ struct SignInView: View {
                 }
                 .buttonStyle(.saffron)
                 .disabled(viewModel.isLoading)
+
+                HStack(spacing: DharmaTheme.Spacing.sm) {
+                    Rectangle()
+                        .fill(DharmaTheme.Colors.secondaryText.opacity(0.2))
+                        .frame(height: 1)
+
+                    Text("or")
+                        .font(DharmaTheme.Typography.uiCaption())
+                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+
+                    Rectangle()
+                        .fill(DharmaTheme.Colors.secondaryText.opacity(0.2))
+                        .frame(height: 1)
+                }
+
+                AppleIDSignInButton(
+                    onRequest: viewModel.prepareAppleSignInRequest,
+                    onCompletion: { result in
+                        Task {
+                            await viewModel.signInWithApple(result: result)
+                        }
+                    }
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .disabled(viewModel.isLoading)
             }
             .padding(.horizontal, DharmaTheme.Spacing.xl)
             

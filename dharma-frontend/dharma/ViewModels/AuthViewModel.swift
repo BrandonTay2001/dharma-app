@@ -1,4 +1,6 @@
 import Foundation
+import CryptoKit
+import AuthenticationServices
 import Observation
 import Supabase
 
@@ -12,6 +14,7 @@ final class AuthViewModel {
     var isAuthenticated = false
     var currentUserEmail: String?
     var currentUserDisplayName: String?
+    private var appleSignInNonce: String?
     
     // Sign-up specific
     var confirmPassword = ""
@@ -90,6 +93,78 @@ final class AuthViewModel {
         
         await MainActor.run {
             self.isLoading = false
+        }
+    }
+
+    @MainActor
+    func prepareAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
+        errorMessage = nil
+
+        let nonce = Self.randomNonce()
+        appleSignInNonce = nonce
+        request.requestedScopes = [.email]
+        request.nonce = Self.sha256(nonce)
+    }
+
+    func signInWithApple(result: Result<ASAuthorization, Error>) async {
+        await MainActor.run {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+
+        defer {
+            Task { @MainActor in
+                self.appleSignInNonce = nil
+                self.isLoading = false
+            }
+        }
+
+        do {
+            let authorization = try result.get()
+
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                await MainActor.run {
+                    self.errorMessage = "Could not read the Apple ID credential."
+                }
+                return
+            }
+
+            guard let nonce = await MainActor.run(body: { self.appleSignInNonce }) else {
+                await MainActor.run {
+                    self.errorMessage = "Missing Apple sign-in nonce. Please try again."
+                }
+                return
+            }
+
+            guard
+                let identityToken = credential.identityToken,
+                let idToken = String(data: identityToken, encoding: .utf8)
+            else {
+                await MainActor.run {
+                    self.errorMessage = "Could not read the Apple identity token."
+                }
+                return
+            }
+
+            let session = try await supabase.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(
+                    provider: .apple,
+                    idToken: idToken,
+                    nonce: nonce
+                )
+            )
+
+            SuperwallViewModel.identifyCurrentUser(session.user)
+            await updateCurrentUser(from: session.user)
+
+            await MainActor.run {
+                self.isAuthenticated = true
+                self.clearForm()
+            }
+        } catch {
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
         }
     }
     
@@ -268,5 +343,34 @@ final class AuthViewModel {
         password = ""
         confirmPassword = ""
         displayName = ""
+    }
+
+    private static func randomNonce(length: Int = 32) -> String {
+        let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        var result = ""
+        var remainingLength = length
+
+        while remainingLength > 0 {
+            let randoms = (0 ..< 16).map { _ in UInt8.random(in: 0 ... 255) }
+
+            randoms.forEach { random in
+                if remainingLength == 0 {
+                    return
+                }
+
+                if random < charset.count {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+
+        return result
+    }
+
+    private static func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.map { String(format: "%02x", $0) }.joined()
     }
 }

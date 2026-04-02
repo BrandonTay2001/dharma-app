@@ -61,7 +61,7 @@ python3 "$SKILL_DIR/compose.py" \
 
 ### Image Enhancement (Gemini API)
 ```bash
-GEMINI_API_KEY="AIzaSyDjFlnsLq6KeGkzA7mT14Lb4jwSanoedTE"
+GEMINI_API_KEY="xyz"
 SCAFFOLD_PATH="screenshots/01-build-daily-rituals/scaffold.png"
 
 # Convert image to base64

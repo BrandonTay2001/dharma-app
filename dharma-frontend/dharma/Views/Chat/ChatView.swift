@@ -4,6 +4,10 @@ struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
     @FocusState private var isInputFocused: Bool
     @State private var animateDots = false
+
+    private func dismissKeyboard() {
+        isInputFocused = false
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -22,6 +26,10 @@ struct ChatView: View {
                 }
                 
                 Spacer()
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                dismissKeyboard()
             }
             .overlay(alignment: .trailing) {
                 Button {
@@ -68,6 +76,11 @@ struct ChatView: View {
                     }
                     .padding(.horizontal, DharmaTheme.Spacing.lg)
                     .padding(.vertical, DharmaTheme.Spacing.lg)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    dismissKeyboard()
                 }
                 .onChange(of: viewModel.messages.count) {
                     withAnimation {

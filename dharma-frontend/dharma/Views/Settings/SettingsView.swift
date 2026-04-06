@@ -2,8 +2,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @Environment(AuthViewModel.self) private var authViewModel
     @State private var showingDeleteAccountConfirmation = false
+    
+    private let supportEmailAddress = "virality.ventures.apps@gmail.com"
     
     var body: some View {
         VStack(spacing: 0) {
@@ -64,7 +67,9 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 // Help & Support
                 Button {
-                    // Help & Support action
+                    if let supportURL = URL(string: "mailto:\(supportEmailAddress)") {
+                        openURL(supportURL)
+                    }
                 } label: {
                     HStack(spacing: DharmaTheme.Spacing.md) {
                         Image(systemName: "questionmark.circle")

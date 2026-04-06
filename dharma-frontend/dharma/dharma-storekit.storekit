@@ -24,7 +24,7 @@
     "_developerTeamID" : "96ZFT3PD83",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 796836489.02199197,
+    "_lastSynchronizedDate" : 797157339.93400502,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -136,7 +136,12 @@
           "familyShareable" : false,
           "groupNumber" : 3,
           "internalID" : "6761495273",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "internalID" : "635DF5DB",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
           "localizations" : [
             {
               "description" : "Dharma's yearly plan",
@@ -164,7 +169,12 @@
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "6761378060",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "internalID" : "C32AF9E2",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
           "localizations" : [
             {
               "description" : "Dharma's yearly plan",

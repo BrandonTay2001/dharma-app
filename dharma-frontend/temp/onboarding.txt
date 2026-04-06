@@ -1,0 +1,137 @@
+1. Get Started
+Headline: “Your path to dharma begins here”
+Sub:"Guided by ancient wisdom. Built for your life today."
+Tagline: "Your AI spiritual mentor" 
+Buttons: Start my journey
+I already have an account - Sign in
+
+2. Consent
+Headline:"Your journey, your data."
+Body: "Dharma personalises your spiritual path using the information you share. We never sell your data, and you can delete everything at any time."
+We collect: Spiritual preferences, age range, goals, practice choices — only to personalise your experience.
+
+Buttons: I understand - let’s continue
+Privacy policy?
+
+3. What’s your name?
+
+4. Spiritual belief
+Question: What tradition speaks to your soul?
+	This shapes your daily verse, mentor, and practice. You can change it anytime.
+Options:
+Hinduism (Vedas, Gita, Deity calendar)
+Buddhism (Dhammapada, Mindfulness)
+Spiritual /meditative (Not religious, inner focus)
+Not religious - just mindful (Calm, clarity, no doctrine)
+I’m exploring all paths (Show me everything)
+Min 1 required
+Buttons: Continue
+
+5. Gender
+Question: How do you identify
+Optional - helps personalise some practice recommendations
+Options:
+Male
+Female
+Prefer not to say
+Buttons: Continue
+
+6. What’s your age range
+Optional - used to adjust depth and tone of your content
+Option:
+Under 18
+18-24
+25-34
+35-44
+45-59
+60+
+Buttons: Continue  
+
+7. Your goal
+Question: What brings you here today?
+Choose up to 2. Your personalised plan will be built around these
+Options:
+Find inner peace and calm (Reduce anxiety, quiet the mind)
+Understand sacred texts (Gita, Vedas, Dhammapada)
+Build a daily spiritual practice (Consistency and routine)
+Find my spiritual path (Still exploring, seeking clarity)
+Deepen my religious knowledge (Go beyond the basics)
+Manage stress and anxiety (Tools for difficult moments)
+Reconnect with my roots (Grew up with this tradition, want to return)
+
+Buttons: Continue
+
+8. Practice preferences
+Question: Which practices call to you?
+Your daily dharmic task will include these. Select all that resonate.
+Option: 
+Breathwork
+Pranayama, breathing exercises
+Guided mediitation
+Audio-led sessons
+Chanting / mantras
+Om, Gayatri, affirmation
+Prayer / rituals
+Puja, offerings, lighting lamps
+Scripture reading
+Verses, sutras, sacred text
+Journaling / reflection
+Prompted daily writing
+Silent sitting
+No guidance, just stillness
+
+Buttons: Continue
+
+9. Time available daily
+Question: How much time can you give to your practice each day?
+Be realistic — 5 minutes done daily is more powerful than an hour done once a week.
+Options:
+5 minutes
+A morning verse and one breath exercise
+10-15 minutes 
+Verse + Short meditation or mantra
+20-30 minutes
+Full practice with ritual
+30+ minutes 
+Deep daily sadhana
+
+Button: Build my plan
+
+10. What Dharma does? (3 panels swipe)
+Panel 1
+Icon: Verse card graphic
+Headline: "Your daily verse, delivered at dawn."
+Body: A new verse from the Bhagavad Gita, Dhammapada, or Tao Te Ching every morning — explained in plain language by your AI mentor.
+Panel 2
+Icon: Chat interface graphic
+Headline: "Ask anything. Get wisdom rooted in the Vedas."
+Body: Your AI spiritual mentor — trained on sacred texts — answers your questions about life, purpose, and practice. Available anytime.
+Panel 3
+Icon: Daily task screen graphic
+Headline: "Your daily dharmic task — always personalised."
+Body: Every morning Dharma tells you exactly what to do: meditate, chant, light a lamp, or fast — aligned with the Hindu and Buddhist calendar.
+Example: "Today is Ekadasi. Fast until sunset. Chant: Om Namo Bhagavate Vasudevaya. 7 min pranayama."
+
+Button: Continue
+
+11. Social proof screen
+Button: Continue
+
+12. Generating your plan (loading screen)
+"Gathering wisdom from the Vedas..."
+"Aligning with Hindu teachings..." / "Aligning with Buddhist teachings..."
+"Building your path to [goal 1] and [goal 2]..."
+Completion:
+Text: "Your Dharma plan is ready."
+Fun fact: "The Bhagavad Gita contains 700 verses spoken over a single day on the battlefield of Kurukshetra."
+
+13. Value proposition
+Premium — what you unlock
+Full personalised daily dharmic task
+Hindu + Buddhist calendar (Ekadasi, festivals, deity days)
+Unlimited AI spiritual mentor
+All guided meditations + breathwork sessions
+Full verse library — 700+ Gita, Dhammapada, Upanishads
+Progress tracking + streaks
+
+Button: Let's go

@@ -27,6 +27,7 @@ struct dharmaApp: App {
             }
             .environment(authViewModel)
             .environment(superwallViewModel)
+            .preferredColorScheme(.light)
         }
     }
 }

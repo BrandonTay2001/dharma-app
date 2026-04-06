@@ -24,33 +24,39 @@ struct ContentView: View {
     }
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ChatView(viewModel: chatViewModel)
-                .tabItem {
-                    Label(Tab.chat.rawValue, systemImage: Tab.chat.icon)
-                }
-                .tag(Tab.chat)
-            
-            HomeView(
-                viewModel: homeViewModel,
-                openVerseExplanationChat: openVerseExplanationChat
-            )
-                .tabItem {
-                    Label(Tab.today.rawValue, systemImage: Tab.today.icon)
-                }
-                .tag(Tab.today)
-            
-            ScriptureListView(viewModel: scriptureViewModel)
-                .tabItem {
-                    Label(Tab.scriptures.rawValue, systemImage: Tab.scriptures.icon)
-                }
-                .tag(Tab.scriptures)
-            
-            LearnView(viewModel: learnViewModel)
-                .tabItem {
-                    Label(Tab.learn.rawValue, systemImage: Tab.learn.icon)
-                }
-                .tag(Tab.learn)
+        ZStack {
+            DharmaTheme.Colors.surfaceContainerLowest
+                .ignoresSafeArea()
+
+            TabView(selection: $selectedTab) {
+                ChatView(viewModel: chatViewModel)
+                    .tabItem {
+                        Label(Tab.chat.rawValue, systemImage: Tab.chat.icon)
+                    }
+                    .tag(Tab.chat)
+                
+                HomeView(
+                    viewModel: homeViewModel,
+                    openVerseExplanationChat: openVerseExplanationChat
+                )
+                    .tabItem {
+                        Label(Tab.today.rawValue, systemImage: Tab.today.icon)
+                    }
+                    .tag(Tab.today)
+                
+                ScriptureListView(viewModel: scriptureViewModel)
+                    .tabItem {
+                        Label(Tab.scriptures.rawValue, systemImage: Tab.scriptures.icon)
+                    }
+                    .tag(Tab.scriptures)
+                
+                LearnView(viewModel: learnViewModel)
+                    .tabItem {
+                        Label(Tab.learn.rawValue, systemImage: Tab.learn.icon)
+                    }
+                    .tag(Tab.learn)
+            }
+            .background(DharmaTheme.Colors.surfaceContainerLowest)
         }
         .tint(DharmaTheme.Colors.saffron)
     }

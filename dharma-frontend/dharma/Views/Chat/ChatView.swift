@@ -188,6 +188,8 @@ struct ChatView: View {
         HStack(spacing: DharmaTheme.Spacing.md) {
             TextField("Ask for guidance...", text: $viewModel.inputText, axis: .vertical)
                 .font(DharmaTheme.Typography.uiBody())
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+                .tint(DharmaTheme.Colors.saffron)
                 .lineLimit(1...4)
                 .padding(.horizontal, DharmaTheme.Spacing.lg)
                 .padding(.vertical, DharmaTheme.Spacing.md)

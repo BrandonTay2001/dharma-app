@@ -63,6 +63,8 @@ struct DailyVerseDetailView: View {
                                 
                                 TextEditor(text: $viewModel.reflectionText)
                                     .font(DharmaTheme.Typography.uiBody())
+                                    .foregroundColor(DharmaTheme.Colors.onSurface)
+                                    .tint(DharmaTheme.Colors.saffron)
                                     .frame(minHeight: 100)
                                     .padding(DharmaTheme.Spacing.sm)
                                     .background(DharmaTheme.Colors.surface)

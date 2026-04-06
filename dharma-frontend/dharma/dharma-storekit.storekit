@@ -24,7 +24,7 @@
     "_developerTeamID" : "96ZFT3PD83",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 796758668.02020705,
+    "_lastSynchronizedDate" : 796836489.02199197,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -91,6 +91,34 @@
           "productID" : "xyz.618263.dharma_monthly_6.49",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly 6.49",
+          "subscriptionGroupID" : "22004701",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 5,
+          "internalID" : "6761547275",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Dharma's monthly plan",
+              "displayName" : "Dharma monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "xyz.618263.dharma_monthly_9.99",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly 9.99",
           "subscriptionGroupID" : "22004701",
           "type" : "RecurringSubscription",
           "winbackOffers" : [

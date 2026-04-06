@@ -60,6 +60,8 @@ struct GratitudeJournalView: View {
                     VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
                         TextEditor(text: $viewModel.gratitudeText)
                             .font(DharmaTheme.Typography.scriptureBody(17))
+                            .foregroundColor(DharmaTheme.Colors.onSurface)
+                            .tint(DharmaTheme.Colors.saffron)
                             .lineSpacing(6)
                             .frame(minHeight: 200)
                             .padding(DharmaTheme.Spacing.lg)

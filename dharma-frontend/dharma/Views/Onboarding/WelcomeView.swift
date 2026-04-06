@@ -2,21 +2,22 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Bindable var viewModel: SuperwallViewModel
+    @Bindable var onboardingViewModel: OnboardingViewModel
 
     var body: some View {
         ZStack {
             background
 
             VStack(spacing: 0) {
-                Spacer(minLength: DharmaTheme.Spacing.xxxl)
+                Spacer(minLength: DharmaTheme.Spacing.xxl)
 
                 hero
 
-                Spacer()
+                Spacer(minLength: DharmaTheme.Spacing.xl)
 
                 benefits
 
-                Spacer()
+                Spacer(minLength: DharmaTheme.Spacing.xl)
 
                 footer
             }
@@ -29,8 +30,8 @@ struct WelcomeView: View {
         LinearGradient(
             colors: [
                 Color.white,
-                DharmaTheme.Colors.cardHindu.opacity(0.6),
-                DharmaTheme.Colors.cardBuddhist.opacity(0.35),
+                DharmaTheme.Colors.cardHindu.opacity(0.58),
+                DharmaTheme.Colors.cardBuddhist.opacity(0.22),
                 Color.white
             ],
             startPoint: .topLeading,
@@ -52,16 +53,17 @@ struct WelcomeView: View {
     }
 
     private var hero: some View {
-        VStack(spacing: DharmaTheme.Spacing.lg) {
-            Text("Dharma")
-                .font(DharmaTheme.Typography.scriptureDisplay(44))
+        VStack(spacing: DharmaTheme.Spacing.md) {
+            Text("Premium")
+                .font(DharmaTheme.Typography.uiLabel(12))
+                .kerning(1.6)
+                .foregroundColor(DharmaTheme.Colors.saffronDark)
+
+            Text("What you unlock")
+                .font(DharmaTheme.Typography.scriptureDisplay(40))
                 .foregroundColor(DharmaTheme.Colors.onSurface)
 
-            Text("A quieter path into daily practice")
-                .font(DharmaTheme.Typography.uiHeadline(20))
-                .foregroundColor(DharmaTheme.Colors.saffron)
-
-            Text("Scripture, meditation, mantra, and reflection arranged into one grounded spiritual journey.")
+            Text(heroSubtitle)
                 .font(DharmaTheme.Typography.uiBody(17))
                 .foregroundColor(DharmaTheme.Colors.secondaryText)
                 .multilineTextAlignment(.center)
@@ -73,21 +75,27 @@ struct WelcomeView: View {
     private var benefits: some View {
         VStack(spacing: DharmaTheme.Spacing.md) {
             benefitCard(
-                symbol: "sun.max",
-                title: "Begin with intention",
-                detail: "Move through a daily verse, guided meditation, mantra, and gratitude ritual."
+                symbol: "calendar.badge.clock",
+                title: "Full personalised daily dharmic task",
+                detail: "A plan shaped around \(onboardingViewModel.primaryGoalSummary.lowercased()) and your chosen practices."
             )
 
             benefitCard(
-                symbol: "book.closed",
-                title: "Study sacred texts",
-                detail: "Read from curated Buddhist and Hindu teachings with a calm, focused interface."
+                symbol: "sun.max",
+                title: "Hindu and Buddhist calendar guidance",
+                detail: "Ekadasi, festivals, deity days, and practice cues grounded in the traditions you selected."
             )
 
             benefitCard(
                 symbol: "bubble.left.and.bubble.right",
-                title: "Receive guided insight",
-                detail: "Open spiritual guidance after subscribing and carry that access into your account."
+                title: "Unlimited AI spiritual mentor",
+                detail: "Ask as many follow-up questions as you need, then move into meditations, breathwork, and the full verse library."
+            )
+
+            benefitCard(
+                symbol: "book.pages.fill",
+                title: "Verse library, streaks, and progress",
+                detail: "Unlock 700+ verses across the Gita, Dhammapada, Upanishads, plus completion tracking and daily momentum."
             )
         }
     }
@@ -97,10 +105,15 @@ struct WelcomeView: View {
             Button {
                 viewModel.presentPreLoginPaywall()
             } label: {
-                Text("Continue")
+                Text("Let's go")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.saffron)
+
+            Text("You'll continue to account access once premium is active.")
+                .font(DharmaTheme.Typography.uiCaption())
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                .multilineTextAlignment(.center)
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -109,6 +122,13 @@ struct WelcomeView: View {
                     .multilineTextAlignment(.center)
             }
         }
+    }
+
+    private var heroSubtitle: String {
+        let nameFragment = onboardingViewModel.trimmedName.isEmpty ? "" : "\(onboardingViewModel.trimmedName), "
+        let goalFragment = onboardingViewModel.secondaryGoalSummary.map { " and \($0)" } ?? ""
+
+        return "\(nameFragment)your plan is ready for \(onboardingViewModel.primaryGoalSummary.lowercased())\(goalFragment), with \(onboardingViewModel.selectedPracticeSummary)."
     }
 
     private func benefitCard(symbol: String, title: String, detail: String) -> some View {
@@ -143,5 +163,8 @@ struct WelcomeView: View {
 }
 
 #Preview {
-    WelcomeView(viewModel: SuperwallViewModel.shared)
+    WelcomeView(
+        viewModel: SuperwallViewModel.shared,
+        onboardingViewModel: OnboardingViewModel()
+    )
 }

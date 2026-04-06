@@ -13,7 +13,8 @@ The `pre_login_access` placement is expected to be configured as a gated placeme
 
 - `dharma/APIConfig.swift`: Stores `superwallPublicAPIKey`
 - `dharma/ViewModels/SuperwallViewModel.swift`: Configures Superwall, tracks subscription state, and presents placements
-- `dharma/Views/Onboarding/WelcomeView.swift`: Welcome screen shown before auth; Continue triggers the pre-login placement
+- `dharma/Views/Onboarding/OnboardingView.swift`: Multi-step onboarding flow shown before auth
+- `dharma/Views/Onboarding/WelcomeView.swift`: Final onboarding premium screen; Let's go triggers the pre-login placement
 - `dharma/dharmaApp.swift`: Root flow that decides whether to show onboarding, auth, or the main app
 - `dharma/ViewModels/AuthViewModel.swift`: Syncs Supabase auth identity into Superwall via `identify` and `reset`
 
@@ -21,10 +22,10 @@ The `pre_login_access` placement is expected to be configured as a gated placeme
 
 ### `pre_login_access`
 
-Used from the onboarding welcome screen.
+Used from the final onboarding premium screen.
 
 Expected behavior:
-- Triggered only when the user taps Continue on `WelcomeView`
+- Triggered only when the user taps Let's go on `WelcomeView`
 - Configured as gated in Superwall
 - If the user purchases, Superwall unlocks the auth flow
 - If the user dismisses the paywall, the app remains on the welcome screen
@@ -33,13 +34,14 @@ Expected behavior:
 
 1. `dharmaApp` creates the shared `SuperwallViewModel`
 2. `SuperwallViewModel` configures Superwall with `APIConfig.superwallPublicAPIKey`
-3. If `hasUnlockedAuthFlow` is `false`, the app shows `WelcomeView`
-4. Tapping Continue calls `presentPreLoginPaywall()`
-5. `Superwall.shared.register(placement: "pre_login_access")` runs
-6. If the placement feature closure executes, `hasUnlockedAuthFlow` becomes `true`
-7. The app then reveals sign in / sign up
-8. After Supabase auth succeeds, the app identifies the user in Superwall using the Supabase user UUID
-9. On sign out or account deletion, the app resets the Superwall identity and returns to the welcome screen when the user is not subscribed
+3. If `hasUnlockedAuthFlow` is `false`, the app shows `OnboardingView`
+4. The onboarding flow advances through profile and preference steps, then lands on `WelcomeView`
+5. Tapping Let's go calls `presentPreLoginPaywall()`
+6. `Superwall.shared.register(placement: "pre_login_access")` runs
+7. If the placement feature closure executes, `hasUnlockedAuthFlow` becomes `true`
+8. The app then reveals sign in / sign up
+9. After Supabase auth succeeds, the app identifies the user in Superwall using the Supabase user UUID
+10. On sign out or account deletion, the app resets the Superwall identity and returns to the welcome screen when the user is not subscribed
 
 ## User Attributes
 

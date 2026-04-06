@@ -11,18 +11,30 @@ import SwiftUI
 struct dharmaApp: App {
     @State private var authViewModel = AuthViewModel()
     @State private var superwallViewModel = SuperwallViewModel.shared
+    @State private var onboardingViewModel = OnboardingViewModel()
+    @State private var showSplash = true
     
     var body: some Scene {
         WindowGroup {
             Group {
-                if superwallViewModel.hasUnlockedAuthFlow {
+                if showSplash {
+                    BreatheSplashView {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            showSplash = false
+                        }
+                    }
+                } else if superwallViewModel.hasUnlockedAuthFlow {
                     if authViewModel.isAuthenticated {
                         ContentView()
                     } else {
                         SignInView(viewModel: authViewModel)
                     }
                 } else {
-                    WelcomeView(viewModel: superwallViewModel)
+                    OnboardingView(
+                        viewModel: onboardingViewModel,
+                        superwallViewModel: superwallViewModel,
+                        authViewModel: authViewModel
+                    )
                 }
             }
             .environment(authViewModel)

@@ -3,12 +3,13 @@ Headline: “Your path to dharma begins here”
 Sub:"Guided by ancient wisdom. Built for your life today."
 Tagline: "Your AI spiritual mentor" 
 Buttons: Start my journey
-I already have an account - Sign in
+Small Footer: I already have an account - Sign in (checks if user has a subscription first, else a dialog pops up to continue the onboarding)
 
 2. Consent
 Headline:"Your journey, your data."
 Body: "Dharma personalises your spiritual path using the information you share. We never sell your data, and you can delete everything at any time."
 We collect: Spiritual preferences, age range, goals, practice choices — only to personalise your experience.
+Disclaimer: We believe in trasparency: Dharma is heavily built upon the timeless teachings of Hinduism and Buddhism, which are readily available in the public domain. This app acts as a clean, distraction-free sanctuary for modern mindfulness.
 
 Buttons: I understand - let’s continue
 Privacy policy?
@@ -125,7 +126,7 @@ Completion:
 Text: "Your Dharma plan is ready."
 Fun fact: "The Bhagavad Gita contains 700 verses spoken over a single day on the battlefield of Kurukshetra."
 
-13. Value proposition
+13. Value proposition (edit WelcomeView.swift)
 Premium — what you unlock
 Full personalised daily dharmic task
 Hindu + Buddhist calendar (Ekadasi, festivals, deity days)

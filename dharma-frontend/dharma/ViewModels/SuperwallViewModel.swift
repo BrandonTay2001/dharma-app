@@ -30,6 +30,18 @@ final class SuperwallViewModel: SuperwallDelegate {
         presentPaywall(for: preLoginPlacement, unlockAuthOnSuccess: true)
     }
 
+    @discardableResult
+    func unlockAuthFlowForExistingSubscriber() -> Bool {
+        syncSubscriptionState()
+
+        guard isSubscribed || hasUnlockedAuthFlow else {
+            return false
+        }
+
+        hasUnlockedAuthFlow = true
+        return true
+    }
+
     func subscriptionStatusDidChange(from oldValue: SubscriptionStatus, to newValue: SubscriptionStatus) {
         isSubscribed = newValue.isActive
 

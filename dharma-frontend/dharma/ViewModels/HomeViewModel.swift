@@ -232,7 +232,7 @@ private struct UserStreakUpsert: Encodable {
 struct UserStreakService {
     func loadCurrentStreak(for userId: UUID) async throws -> Int {
         let records = try await loadRecords(for: userId)
-        return records.first?.currentStreak ?? 0
+        return displayedStreak(for: records.first)
     }
 
     func completeDay(for userId: UUID, dayKey: String) async throws -> Int {
@@ -242,8 +242,7 @@ struct UserStreakService {
             return record?.currentStreak ?? 1
         }
 
-        let isConsecutiveDay = isPreviousDay(record?.lastActiveDate, before: dayKey)
-        let nextCurrentStreak = isConsecutiveDay ? (record?.currentStreak ?? 0) + 1 : 1
+        let nextCurrentStreak = nextStreakAfterCompleting(record, on: dayKey)
         let nextLongestStreak = max(record?.longestStreak ?? 0, nextCurrentStreak)
         let payload = UserStreakUpsert(
             userId: userId,
@@ -268,6 +267,26 @@ struct UserStreakService {
             .limit(1)
             .execute()
             .value
+    }
+
+    private func displayedStreak(for record: UserStreakRecord?) -> Int {
+        guard let record else { return 0 }
+
+        let todayKey = Self.dayFormatter.string(from: Date())
+
+        guard record.lastActiveDate == todayKey || isPreviousDay(record.lastActiveDate, before: todayKey) else {
+            return 0
+        }
+
+        return record.currentStreak
+    }
+
+    private func nextStreakAfterCompleting(_ record: UserStreakRecord?, on dayKey: String) -> Int {
+        guard isPreviousDay(record?.lastActiveDate, before: dayKey) else {
+            return 1
+        }
+
+        return (record?.currentStreak ?? 0) + 1
     }
 
     private func isPreviousDay(_ previousDayKey: String?, before currentDayKey: String) -> Bool {

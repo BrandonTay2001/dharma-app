@@ -1,7 +1,9 @@
+import StoreKit
 import SwiftUI
 
 struct OnboardingView: View {
     @Environment(\.openURL) private var openURL
+    @Environment(\.requestReview) private var requestReview
 
     @Bindable var viewModel: OnboardingViewModel
     @Bindable var superwallViewModel: SuperwallViewModel
@@ -44,29 +46,7 @@ struct OnboardingView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [
-                Color.white,
-                DharmaTheme.Colors.cardHindu.opacity(0.34),
-                DharmaTheme.Colors.cardBuddhist.opacity(0.18),
-                Color.white
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .overlay(alignment: .topTrailing) {
-            Circle()
-                .fill(DharmaTheme.Colors.saffron.opacity(0.08))
-                .frame(width: 240, height: 240)
-                .offset(x: 90, y: -50)
-        }
-        .overlay(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: 64, style: .continuous)
-                .fill(DharmaTheme.Colors.cardBuddhist.opacity(0.28))
-                .frame(width: 260, height: 220)
-                .rotationEffect(.degrees(18))
-                .offset(x: -110, y: 70)
-        }
+        DharmaTheme.Colors.cardHindu.opacity(0.34)
         .ignoresSafeArea()
     }
 
@@ -124,6 +104,8 @@ struct OnboardingView: View {
             ageRangeStep
         case .goals:
             goalsStep
+        case .guidedSupport:
+            guidedSupportStep
         case .practices:
             practicesStep
         case .timeAvailable:
@@ -145,7 +127,7 @@ struct OnboardingView: View {
     private var bottomCTA: some View {
         VStack(spacing: DharmaTheme.Spacing.sm) {
             Button {
-                viewModel.advance()
+                handleContinueTap()
             } label: {
                 Text(buttonTitle)
                     .frame(maxWidth: .infinity)
@@ -175,6 +157,19 @@ struct OnboardingView: View {
             )
             .ignoresSafeArea(edges: .bottom)
         )
+    }
+
+    private func handleContinueTap() {
+        if viewModel.currentStep == .socialProof {
+            requestReview()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                viewModel.advance()
+            }
+            return
+        }
+
+        viewModel.advance()
     }
 
     private var buttonTitle: String {
@@ -363,6 +358,52 @@ struct OnboardingView: View {
                     detail: \ .detail,
                     action: viewModel.toggleGoal
                 )
+            }
+        }
+    }
+
+    private var guidedSupportStep: some View {
+        stepLayout(
+            eyebrow: "Why Dharma helps",
+            title: "Reach your goal twice as quickly with Dharma",
+            subtitle: "A clear daily plan removes guesswork and keeps your practice consistent."
+        ) {
+            VStack(spacing: DharmaTheme.Spacing.xl) {
+                VStack(spacing: DharmaTheme.Spacing.lg) {
+                    HStack(alignment: .bottom, spacing: DharmaTheme.Spacing.lg) {
+                        comparisonColumn(
+                            title: "On your own",
+                            fill: DharmaTheme.Colors.surfaceContainerLow,
+                            badgeText: "Slow",
+                            badgeFill: DharmaTheme.Colors.surfaceContainer,
+                            height: 138,
+                            badgeTextColor: DharmaTheme.Colors.onSurfaceVariant
+                        )
+
+                        comparisonColumn(
+                            title: "With Dharma",
+                            fill: DharmaTheme.Colors.saffronGradient,
+                            badgeText: "2x",
+                            badgeFill: DharmaTheme.Colors.saffronDark,
+                            height: 210,
+                            badgeTextColor: .white
+                        )
+                    }
+                }
+                .padding(DharmaTheme.Spacing.xl)
+                .frame(maxWidth: .infinity)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            DharmaTheme.Colors.surfaceContainerLowest.opacity(0.98),
+                            DharmaTheme.Colors.cardHindu.opacity(0.78),
+                            DharmaTheme.Colors.cardBuddhist.opacity(0.52)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.xl, style: .continuous))
             }
         }
     }
@@ -606,6 +647,39 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DharmaTheme.Colors.cardHindu.opacity(0.6))
         .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
+    }
+
+    private func comparisonColumn(
+        title: String,
+        fill: some ShapeStyle,
+        badgeText: String,
+        badgeFill: Color,
+        height: CGFloat,
+        badgeTextColor: Color
+    ) -> some View {
+        VStack(spacing: DharmaTheme.Spacing.md) {
+            Text(title)
+                .font(DharmaTheme.Typography.uiHeadline(16))
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+                .multilineTextAlignment(.center)
+
+            Spacer(minLength: 0)
+
+            RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous)
+                .fill(fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: height)
+                .overlay(alignment: .bottom) {
+                    Text(badgeText)
+                        .font(DharmaTheme.Typography.uiHeadline(14))
+                        .foregroundColor(badgeTextColor)
+                        .padding(.vertical, DharmaTheme.Spacing.md)
+                        .frame(maxWidth: .infinity)
+                        .background(badgeFill)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func optionList<Item: Identifiable>(

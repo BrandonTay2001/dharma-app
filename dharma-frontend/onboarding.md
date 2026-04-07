@@ -17,12 +17,13 @@ It introduces the app, collects enough context to personalise the experience, ex
 5. Gender
 6. Age Range
 7. Goals
-8. Practice Preferences
-9. Time Available Daily
-10. What Dharma Does
-11. Social Proof
-12. Generating Your Plan
-13. Premium Value Proposition
+8. Why Dharma Helps
+9. Practice Preferences
+10. Time Available Daily
+11. What Dharma Does
+12. Social Proof
+13. Generating Your Plan
+14. Premium Value Proposition
 
 ## Screen Details
 
@@ -100,6 +101,20 @@ It introduces the app, collects enough context to personalise the experience, ex
 
 ### 8. Practice Preferences
 
+### 8. Why Dharma Helps
+
+- Placement: directly after Goals
+- Headline: "One clear ritual beats starting from scratch"
+- Body: explain that Dharma removes daily guesswork by packaging verse, meditation, mantra, and reflection into one calm plan
+- Visual: side-by-side comparison between "On your own" and "With Dharma"
+- Supporting points:
+  - Daily verse
+  - AI mentor
+  - Personal rhythm built from goals and available time
+- CTA: "Continue"
+
+### 9. Practice Preferences
+
 - Question: "Which practices call to you?"
 - Helper text: your daily dharmic task will include these; select all that resonate
 - CTA: "Continue"
@@ -112,7 +127,7 @@ It introduces the app, collects enough context to personalise the experience, ex
   - Journaling / reflection: prompted daily writing
   - Silent sitting: no guidance, just stillness
 
-### 9. Time Available Daily
+### 10. Time Available Daily
 
 - Question: "How much time can you give to your practice each day?"
 - Helper text: "Be realistic. 5 minutes done daily is more powerful than an hour done once a week."
@@ -123,7 +138,7 @@ It introduces the app, collects enough context to personalise the experience, ex
   - 20-30 minutes: full practice with ritual
   - 30+ minutes: deep daily sadhana
 
-### 10. What Dharma Does
+### 11. What Dharma Does
 
 Three swipeable panels.
 
@@ -143,19 +158,19 @@ Three swipeable panels.
 - Body: Dharma tells the user exactly what to do each morning, aligned with the Hindu and Buddhist calendar
 - Example: "Today is Ekadasi. Fast until sunset. Chant: Om Namo Bhagavate Vasudevaya. 7 min pranayama."
 
-### 11. Social Proof
+### 12. Social Proof
 
 - Social proof / reassurance screen
 - CTA: "Continue"
 
-### 12. Generating Your Plan
+### 13. Generating Your Plan
 
 - Short loading phrases only
 - Current timing target: 6 seconds total
 - Completion text: "Your Dharma plan is ready."
 - Fun fact: "The Bhagavad Gita contains 700 verses spoken over a single day on the battlefield of Kurukshetra."
 
-### 13. Premium Value Proposition
+### 14. Premium Value Proposition
 
 - Heading: "Premium - what you unlock"
 - Value points:

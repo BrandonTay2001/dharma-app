@@ -12,6 +12,7 @@ final class OnboardingViewModel {
         case gender
         case ageRange
         case goals
+        case guidedSupport
         case practices
         case timeAvailable
         case productTour
@@ -34,13 +35,15 @@ final class OnboardingViewModel {
             case .ageRange:
                 return 0.48
             case .goals:
-                return 0.58
+                return 0.56
+            case .guidedSupport:
+                return 0.64
             case .practices:
-                return 0.68
+                return 0.72
             case .timeAvailable:
-                return 0.78
+                return 0.80
             case .productTour:
-                return 0.86
+                return 0.88
             case .socialProof:
                 return 0.94
             case .generatingPlan, .premium:
@@ -381,7 +384,7 @@ final class OnboardingViewModel {
 
     var canContinue: Bool {
         switch currentStep {
-        case .intro, .consent, .gender, .ageRange, .productTour, .socialProof, .premium:
+        case .intro, .consent, .gender, .ageRange, .guidedSupport, .productTour, .socialProof, .premium:
             return true
         case .name:
             return !trimmedName.isEmpty
@@ -419,6 +422,8 @@ final class OnboardingViewModel {
         case .ageRange:
             currentStep = .goals
         case .goals:
+            currentStep = .guidedSupport
+        case .guidedSupport:
             currentStep = .practices
         case .practices:
             currentStep = .timeAvailable
@@ -449,8 +454,10 @@ final class OnboardingViewModel {
             currentStep = .gender
         case .goals:
             currentStep = .ageRange
-        case .practices:
+        case .guidedSupport:
             currentStep = .goals
+        case .practices:
+            currentStep = .guidedSupport
         case .timeAvailable:
             currentStep = .practices
         case .productTour:

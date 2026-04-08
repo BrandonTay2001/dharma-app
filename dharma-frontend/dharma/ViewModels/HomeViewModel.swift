@@ -105,7 +105,7 @@ final class HomeViewModel {
 
         tasks = DailyTask.sampleTasks.map { task in
             var updatedTask = task
-            updatedTask.isCompleted = state.completedTaskKeys.contains(task.taskType.storageKey)
+            updatedTask.isCompleted = !state.completedTaskKeys.isDisjoint(with: task.taskType.completionStorageKeys)
             return updatedTask
         }
     }

@@ -5,77 +5,58 @@ struct ChatView: View {
     @FocusState private var isInputFocused: Bool
     @State private var animateDots = false
 
+    private let starterPrompts = [
+        "How can I practice mindfulness daily?",
+        "What does the Bhagavad Gita say about duty?",
+        "Explain the Four Noble Truths"
+    ]
+
     private func dismissKeyboard() {
         isInputFocused = false
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Spacer()
-                
-                VStack(spacing: DharmaTheme.Spacing.xs) {
-                    Text("Spiritual Guidance")
-                        .font(DharmaTheme.Typography.uiTitle(24))
-                        .foregroundColor(DharmaTheme.Colors.saffron)
-                    
-                    Text("\(viewModel.remainingMessages)/\(viewModel.dailyLimit) questions left today")
-                        .font(DharmaTheme.Typography.uiCaption())
-                        .foregroundColor(DharmaTheme.Colors.secondaryText)
-                }
-                
-                Spacer()
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                dismissKeyboard()
-            }
-            .overlay(alignment: .trailing) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.startNewConversation()
-                    }
-                } label: {
-                    Image(systemName: "plus.bubble")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(
-                            viewModel.messages.isEmpty
-                                ? DharmaTheme.Colors.secondaryText.opacity(0.4)
-                                : DharmaTheme.Colors.saffron
-                        )
-                        .frame(width: 44, height: 44)
-                }
-                .disabled(viewModel.messages.isEmpty)
-                .padding(.trailing, DharmaTheme.Spacing.sm)
-            }
-            .padding(.top, DharmaTheme.Spacing.lg)
-            .padding(.bottom, DharmaTheme.Spacing.md)
+            header
+                .padding(.horizontal, DharmaTheme.Spacing.lg)
+                .padding(.top, DharmaTheme.Spacing.lg)
+                .padding(.bottom, DharmaTheme.Spacing.xl)
             
-            Divider()
-                .opacity(0.3)
-            
-            // Messages
             ScrollViewReader { proxy in
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: DharmaTheme.Spacing.lg) {
-                        if viewModel.messages.isEmpty {
-                            emptyState
-                                .padding(.top, DharmaTheme.Spacing.xxxl)
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: DharmaTheme.Spacing.lg) {
+                            if viewModel.messages.isEmpty {
+                                emptyState
+                                    .padding(.top, DharmaTheme.Spacing.sm)
+                            }
+
+                            ForEach(viewModel.messages) { message in
+                                ChatBubbleView(message: message)
+                                    .id(message.id)
+                            }
+
+                            if viewModel.isTyping {
+                                typingIndicator
+                                    .id("typing")
+                            }
                         }
-                        
-                        ForEach(viewModel.messages) { message in
-                            ChatBubbleView(message: message)
-                                .id(message.id)
-                        }
-                        
-                        if viewModel.isTyping {
-                            typingIndicator
-                                .id("typing")
-                        }
+                        .padding(.horizontal, DharmaTheme.Spacing.lg)
+                        .padding(.bottom, DharmaTheme.Spacing.xl)
                     }
-                    .padding(.horizontal, DharmaTheme.Spacing.lg)
-                    .padding(.vertical, DharmaTheme.Spacing.lg)
+
+                    if viewModel.messages.isEmpty {
+                        starterPromptStrip
+                            .padding(.bottom, DharmaTheme.Spacing.md)
+                    }
+
+                    if let error = viewModel.errorMessage {
+                        errorBanner(error)
+                            .padding(.horizontal, DharmaTheme.Spacing.lg)
+                            .padding(.bottom, DharmaTheme.Spacing.md)
+                    }
+
+                    inputBar
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .contentShape(Rectangle())
@@ -83,7 +64,7 @@ struct ChatView: View {
                     dismissKeyboard()
                 }
                 .onChange(of: viewModel.messages.count) {
-                    withAnimation {
+                    withAnimation(.easeOut(duration: 0.2)) {
                         if let lastMessage = viewModel.messages.last {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
                         }
@@ -91,84 +72,121 @@ struct ChatView: View {
                 }
                 .onChange(of: viewModel.isTyping) {
                     if viewModel.isTyping {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo("typing", anchor: .bottom)
                         }
                     }
                 }
             }
-            
-            // Error banner
-            if let error = viewModel.errorMessage {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                    Text(error)
-                        .font(DharmaTheme.Typography.uiCaption())
-                        .foregroundColor(DharmaTheme.Colors.onSurface)
-                    Spacer()
-                    Button {
-                        viewModel.errorMessage = nil
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(DharmaTheme.Colors.secondaryText)
-                    }
+        }
+        .background(Color.white.ignoresSafeArea())
+    }
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    viewModel.startNewConversation()
                 }
-                .padding(.horizontal, DharmaTheme.Spacing.lg)
-                .padding(.vertical, DharmaTheme.Spacing.sm)
-                .background(Color.orange.opacity(0.1))
+            } label: {
+                Image(systemName: "plus.bubble")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(
+                        viewModel.messages.isEmpty
+                            ? DharmaTheme.Colors.secondaryText.opacity(0.4)
+                            : DharmaTheme.Colors.saffron
+                    )
+                    .frame(width: 44, height: 44)
             }
-            
-            // Input bar
-            inputBar
-        }
-        .background(Color.white)
-    }
-    
-    // MARK: - Empty State
-    private var emptyState: some View {
-        VStack(spacing: DharmaTheme.Spacing.lg) {
-            Text("🙏")
-                .font(.system(size: 48))
-            
-            Text("Ask for guidance")
-                .font(DharmaTheme.Typography.uiHeadline(18))
+            .disabled(viewModel.messages.isEmpty)
+
+            Spacer()
+
+            Text("Chat")
+                .font(DharmaTheme.Typography.uiTitle(22))
                 .foregroundColor(DharmaTheme.Colors.onSurface)
-            
-            Text("Explore wisdom from Hindu and Buddhist traditions.\nAsk about dharma, karma, meditation, or any spiritual topic.")
-                .font(DharmaTheme.Typography.uiBody(14))
-                .foregroundColor(DharmaTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-            
-            // Suggestion chips
-            VStack(spacing: DharmaTheme.Spacing.sm) {
-                suggestionChip("How can I practice mindfulness daily?")
-                suggestionChip("What does the Bhagavad Gita say about duty?")
-                suggestionChip("Explain the Four Noble Truths")
+
+            Spacer()
+
+            HStack(spacing: DharmaTheme.Spacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(DharmaTheme.Colors.saffron.opacity(0.18))
+                        .frame(width: 44, height: 44)
+
+                    Text("🪷")
+                        .font(.system(size: 20))
+                }
+
+                Text("\(viewModel.messagesUsedToday)/\(viewModel.dailyLimit)")
+                    .font(DharmaTheme.Typography.uiHeadline(16))
+                    .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
+                    .monospacedDigit()
             }
         }
-        .padding(.horizontal, DharmaTheme.Spacing.xl)
     }
     
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
+            ZStack {
+                Circle()
+                    .fill(DharmaTheme.Colors.saffron.opacity(0.18))
+                    .frame(width: 44, height: 44)
+
+                Text("🪷")
+                    .font(.system(size: 22))
+            }
+
+            Text("Feel free to ask me anything about spirituality!")
+                .font(DharmaTheme.Typography.uiBody(15))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+
+    private var starterPromptStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DharmaTheme.Spacing.md) {
+                ForEach(starterPrompts, id: \.self) { prompt in
+                    suggestionChip(prompt)
+                }
+            }
+            .padding(.horizontal, DharmaTheme.Spacing.lg)
+        }
+    }
+
     private func suggestionChip(_ text: String) -> some View {
         Button {
-            viewModel.inputText = text
-            viewModel.sendMessage()
+            dismissKeyboard()
+            viewModel.sendPrefilledMessage(text)
         } label: {
-            Text(text)
-                .font(DharmaTheme.Typography.uiBody(14))
-                .foregroundColor(DharmaTheme.Colors.onSurface)
-                .padding(.horizontal, DharmaTheme.Spacing.lg)
-                .padding(.vertical, DharmaTheme.Spacing.md)
-                .frame(maxWidth: .infinity)
-                .background(DharmaTheme.Colors.surface)
-                .cornerRadius(DharmaTheme.Radius.md)
+            HStack(spacing: DharmaTheme.Spacing.md) {
+                Text(text)
+                    .font(DharmaTheme.Typography.uiBody(14))
+                    .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                Spacer()
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText.opacity(0.6))
+            }
+            .frame(width: 260)
+            .padding(.horizontal, DharmaTheme.Spacing.lg)
+            .padding(.vertical, DharmaTheme.Spacing.md)
+            .frame(height: 64)
+            .background(Color(hex: "FFF8F2"))
+            .overlay(
+                RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg)
+                    .stroke(Color(hex: "E8DDD4"), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg))
         }
     }
-    
-    // MARK: - Typing Indicator
+
     private var typingIndicator: some View {
         HStack {
             HStack(spacing: 6) {
@@ -187,7 +205,7 @@ struct ChatView: View {
             }
             .padding(.horizontal, DharmaTheme.Spacing.lg)
             .padding(.vertical, DharmaTheme.Spacing.md)
-            .background(DharmaTheme.Colors.saffron.opacity(0.12))
+            .background(DharmaTheme.Colors.saffron.opacity(0.14))
             .cornerRadius(DharmaTheme.Radius.lg)
             .onAppear { animateDots = true }
             .onDisappear { animateDots = false }
@@ -195,11 +213,35 @@ struct ChatView: View {
             Spacer()
         }
     }
-    
-    // MARK: - Input Bar
+
+    private func errorBanner(_ error: String) -> some View {
+        HStack(spacing: DharmaTheme.Spacing.sm) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(DharmaTheme.Colors.saffronDark)
+
+            Text(error)
+                .font(DharmaTheme.Typography.uiCaption())
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+
+            Spacer()
+
+            Button {
+                viewModel.errorMessage = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+        }
+        .padding(.horizontal, DharmaTheme.Spacing.lg)
+        .padding(.vertical, DharmaTheme.Spacing.md)
+        .background(DharmaTheme.Colors.saffron.opacity(0.14))
+        .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg))
+    }
+
     private var inputBar: some View {
         HStack(spacing: DharmaTheme.Spacing.md) {
-            TextField("Ask for guidance...", text: $viewModel.inputText, axis: .vertical)
+            TextField("Start type to ask ...", text: $viewModel.inputText, axis: .vertical)
                 .font(DharmaTheme.Typography.uiBody())
                 .foregroundColor(DharmaTheme.Colors.onSurface)
                 .tint(DharmaTheme.Colors.saffron)
@@ -209,13 +251,13 @@ struct ChatView: View {
                 .background(DharmaTheme.Colors.surface)
                 .cornerRadius(DharmaTheme.Radius.xl)
                 .focused($isInputFocused)
-            
+
             Button {
                 viewModel.sendMessage()
-                isInputFocused = false
+                dismissKeyboard()
             } label: {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 18))
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(width: 44, height: 44)
                     .background(
@@ -223,7 +265,7 @@ struct ChatView: View {
                             ? DharmaTheme.Colors.saffron
                             : DharmaTheme.Colors.surfaceContainer
                     )
-                    .cornerRadius(DharmaTheme.Radius.md)
+                    .clipShape(Circle())
             }
             .disabled(!viewModel.canSendMessage)
         }

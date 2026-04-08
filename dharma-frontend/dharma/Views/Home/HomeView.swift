@@ -11,7 +11,7 @@ struct HomeView: View {
     @State private var showingMantra = false
     @State private var showingJournal = false
     @State private var showingSettings = false
-    @State private var selectedVerseType: DailyTask.TaskType?
+    @State private var selectedVerseType: DailyTask.TaskType = .hinduVerse
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -34,17 +34,15 @@ struct HomeView: View {
         .background(Color.white)
         .sheet(isPresented: $showingVerseDetail) {
             DailyVerseDetailView(
-                verseType: selectedVerseType ?? .hinduVerse,
+                verseType: selectedVerseType,
                 onDone: {
-                    if let type = selectedVerseType {
-                        markTaskDone(type)
-                    }
+                    markTaskDone(.dailyVerse)
                     showingVerseDetail = false
                 },
-                onChatToLearnMore: {
-                    guard let type = selectedVerseType else { return }
+                onChatToLearnMore: { verseType in
+                    selectedVerseType = verseType
                     showingVerseDetail = false
-                    openVerseExplanationChat(type)
+                    openVerseExplanationChat(verseType)
                 }
             )
         }
@@ -164,16 +162,11 @@ struct HomeView: View {
         }
     }
     
-    // MARK: - Task Grid
-    private let gridColumns = [
-        GridItem(.flexible(), spacing: DharmaTheme.Spacing.md),
-        GridItem(.flexible(), spacing: DharmaTheme.Spacing.md)
-    ]
-    
+    // MARK: - Task List
     private var taskGrid: some View {
-        LazyVGrid(columns: gridColumns, spacing: DharmaTheme.Spacing.md) {
+        VStack(spacing: DharmaTheme.Spacing.md) {
             ForEach(viewModel.tasks) { task in
-                DailyTaskCard(task: task) {
+                DailyTaskRow(task: task) {
                     handleTaskTap(task)
                 }
             }
@@ -183,6 +176,8 @@ struct HomeView: View {
     // MARK: - Actions
     private func handleTaskTap(_ task: DailyTask) {
         switch task.taskType {
+        case .dailyVerse:
+            showingVerseDetail = true
         case .hinduVerse, .buddhistVerse:
             selectedVerseType = task.taskType
             showingVerseDetail = true

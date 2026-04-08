@@ -10,7 +10,8 @@ struct DailyTask: Identifiable {
     var isCompleted: Bool
     let taskType: TaskType
     
-    enum TaskType {
+    enum TaskType: Hashable {
+        case dailyVerse
         case hinduVerse
         case buddhistVerse
         case meditation
@@ -23,6 +24,8 @@ struct DailyTask: Identifiable {
 extension DailyTask.TaskType {
     var storageKey: String {
         switch self {
+        case .dailyVerse:
+            return "dailyVerse"
         case .hinduVerse:
             return "hinduVerse"
         case .buddhistVerse:
@@ -38,8 +41,45 @@ extension DailyTask.TaskType {
         }
     }
 
+    var completionStorageKeys: Set<String> {
+        switch self {
+        case .dailyVerse:
+            return [storageKey, DailyTask.TaskType.hinduVerse.storageKey, DailyTask.TaskType.buddhistVerse.storageKey]
+        default:
+            return [storageKey]
+        }
+    }
+
+    var versePickerTitle: String {
+        switch self {
+        case .hinduVerse:
+            return "Hindu"
+        case .buddhistVerse:
+            return "Buddhist"
+        default:
+            return "Daily Verse"
+        }
+    }
+
+    var verseIcon: String {
+        switch self {
+        case .hinduVerse:
+            return "🛕"
+        case .buddhistVerse:
+            return "🪷"
+        default:
+            return "📖"
+        }
+    }
+
+    static var selectableVerseTypes: [Self] {
+        [.hinduVerse, .buddhistVerse]
+    }
+
     var verseTitle: String {
         switch self {
+        case .dailyVerse:
+            return "VERSE OF THE DAY"
         case .hinduVerse:
             return "VERSE OF THE DAY • GITA"
         case .buddhistVerse:
@@ -51,6 +91,8 @@ extension DailyTask.TaskType {
 
     var verseText: String {
         switch self {
+        case .dailyVerse:
+            return "Choose Hindu or Buddhist above to read today’s verse."
         case .hinduVerse:
             return "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself to be the cause of the results of your activities, nor be attached to inaction.\n\n— Bhagavad Gita 2.47"
         case .buddhistVerse:
@@ -68,22 +110,13 @@ extension DailyTask.TaskType {
 extension DailyTask {
     static let sampleTasks: [DailyTask] = [
         DailyTask(
-            title: "DAILY HINDU\nVERSE",
-            subtitle: "Bhagavad Gita",
+            title: "DAILY VERSE",
+            subtitle: "Hindu or Buddhist",
             duration: "1 MIN",
-            icon: "🛕",
+            icon: "📖",
             color: DharmaTheme.Colors.cardHindu,
             isCompleted: false,
-            taskType: .hinduVerse
-        ),
-        DailyTask(
-            title: "DAILY BUDDHIST\nVERSE",
-            subtitle: "Dhammapada",
-            duration: "1 MIN",
-            icon: "🪷",
-            color: DharmaTheme.Colors.cardBuddhist,
-            isCompleted: false,
-            taskType: .buddhistVerse
+            taskType: .dailyVerse
         ),
         DailyTask(
             title: "GUIDED\nMEDITATION",

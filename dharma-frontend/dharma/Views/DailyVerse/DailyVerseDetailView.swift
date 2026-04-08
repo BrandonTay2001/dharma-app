@@ -2,20 +2,20 @@ import SwiftUI
 import UIKit
 
 struct DailyVerseDetailView: View {
-    let verseType: DailyTask.TaskType
     let onDone: () -> Void
-    let onChatToLearnMore: () -> Void
+    let onChatToLearnMore: (DailyTask.TaskType) -> Void
     @State private var showReflection = false
+    @State private var selectedVerseType: DailyTask.TaskType
     @State private var viewModel: DailyVerseReflectionViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
-    init(verseType: DailyTask.TaskType, onDone: @escaping () -> Void, onChatToLearnMore: @escaping () -> Void) {
-        self.verseType = verseType
+    init(verseType: DailyTask.TaskType, onDone: @escaping () -> Void, onChatToLearnMore: @escaping (DailyTask.TaskType) -> Void) {
         self.onDone = onDone
         self.onChatToLearnMore = onChatToLearnMore
 
         let viewModel = DailyVerseReflectionViewModel(verseType: verseType)
+        _selectedVerseType = State(initialValue: verseType)
         _viewModel = State(initialValue: viewModel)
         _showReflection = State(initialValue: viewModel.hasReflection)
     }
@@ -29,19 +29,16 @@ struct DailyVerseDetailView: View {
                     VStack(spacing: DharmaTheme.Spacing.xxl) {
                         // Verse Card
                         VStack(spacing: DharmaTheme.Spacing.xl) {
-                            // Lotus icon
-                            Text("🪷")
+                            Text(selectedVerseType.verseIcon)
                                 .font(.system(size: 48))
                                 .padding(.top, DharmaTheme.Spacing.xxl)
                             
-                            // Label
-                            Text(verseType.verseTitle)
+                            Text(selectedVerseType.verseTitle)
                                 .font(DharmaTheme.Typography.uiLabel(13))
                                 .foregroundColor(DharmaTheme.Colors.saffron)
                                 .tracking(1.5)
                             
-                            // Verse text
-                            Text(verseType.verseText)
+                            Text(selectedVerseType.verseText)
                                 .font(DharmaTheme.Typography.scriptureBody(20))
                                 .foregroundColor(DharmaTheme.Colors.onSurface)
                                 .multilineTextAlignment(.center)
@@ -107,7 +104,7 @@ struct DailyVerseDetailView: View {
                     .buttonStyle(.ghost)
                     
                     Button {
-                        onChatToLearnMore()
+                        onChatToLearnMore(selectedVerseType)
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "bubble.left.fill")
@@ -133,15 +130,34 @@ struct DailyVerseDetailView: View {
                 )
             }
             .background(Color.white)
-            .navigationTitle("Your Journey")
+            .navigationTitle("Daily Verse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
+                    Menu {
+                        ForEach(DailyTask.TaskType.selectableVerseTypes, id: \.self) { verseType in
+                            Button {
+                                selectVerseType(verseType)
+                            } label: {
+                                if verseType == selectedVerseType {
+                                    Label(verseType.versePickerTitle, systemImage: "checkmark")
+                                } else {
+                                    Text(verseType.versePickerTitle)
+                                }
+                            }
+                        }
                     } label: {
-                        Image(systemName: "arrow.left")
-                            .foregroundColor(DharmaTheme.Colors.onSurface)
+                        HStack(spacing: 6) {
+                            Text(selectedVerseType.versePickerTitle)
+                                .font(DharmaTheme.Typography.uiCaption())
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(DharmaTheme.Colors.onSurface)
+                        .padding(.horizontal, DharmaTheme.Spacing.md)
+                        .padding(.vertical, DharmaTheme.Spacing.sm)
+                        .background(DharmaTheme.Colors.surface)
+                        .cornerRadius(DharmaTheme.Radius.xl)
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -156,16 +172,26 @@ struct DailyVerseDetailView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
-            viewModel.loadReflection()
-            showReflection = viewModel.hasReflection
+            reloadReflection()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-            viewModel.loadReflection()
-            showReflection = viewModel.hasReflection
+            reloadReflection()
         }
+    }
+
+    private func selectVerseType(_ verseType: DailyTask.TaskType) {
+        let wasShowingReflection = showReflection
+        selectedVerseType = verseType
+        viewModel.selectVerseType(verseType)
+        showReflection = wasShowingReflection || viewModel.hasReflection
+    }
+
+    private func reloadReflection() {
+        viewModel.loadReflection()
+        showReflection = showReflection || viewModel.hasReflection
     }
 }
 
 #Preview {
-    DailyVerseDetailView(verseType: .hinduVerse, onDone: {}, onChatToLearnMore: {})
+    DailyVerseDetailView(verseType: .hinduVerse, onDone: {}, onChatToLearnMore: { _ in })
 }

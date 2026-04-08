@@ -11,7 +11,7 @@ final class DailyVerseReflectionViewModel {
         }
     }
 
-    let verseType: DailyTask.TaskType
+    private(set) var verseType: DailyTask.TaskType
 
     var characterCount: Int {
         reflectionText.count
@@ -31,6 +31,12 @@ final class DailyVerseReflectionViewModel {
     init(verseType: DailyTask.TaskType, store: DailyVerseReflectionStore = DailyVerseReflectionStore()) {
         self.verseType = verseType
         self.store = store
+        loadReflection()
+    }
+
+    func selectVerseType(_ verseType: DailyTask.TaskType) {
+        guard self.verseType != verseType else { return }
+        self.verseType = verseType
         loadReflection()
     }
 
@@ -96,6 +102,8 @@ struct DailyVerseReflectionStore {
 
     private func storageKeyComponent(for verseType: DailyTask.TaskType) -> String {
         switch verseType {
+        case .dailyVerse:
+            return "daily"
         case .hinduVerse:
             return "hindu"
         case .buddhistVerse:

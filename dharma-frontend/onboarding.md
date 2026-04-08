@@ -23,8 +23,9 @@ It introduces the app, collects enough context to personalise the experience, ex
 11. What Dharma Does
 12. Social Proof
 13. Notifications
-14. Generating Your Plan
-15. Premium Value Proposition
+14. Widgets
+15. Generating Your Plan
+16. Premium Value Proposition
 
 ## Screen Details
 
@@ -165,14 +166,22 @@ Three swipeable panels.
 - Primary CTA: "Allow Notifications"
 - Behavior: tapping the CTA should trigger the iOS notification permission prompt, then continue onboarding
 
-### 14. Generating Your Plan
+### 14. Widgets
+
+- Headline: "Bring the daily verse to your Home Screen"
+- Body: explain that Dharma will soon support a Home Screen widget for the daily verse so users can see sacred guidance without opening the app
+- Visual: stylised widget preview card showing a verse snippet and the daily-verse concept
+- Primary CTA: "Continue"
+- Behavior: informational only for now; do not attempt a system permission prompt because iOS widgets are user-added from the Home Screen
+
+### 15. Generating Your Plan
 
 - Short loading phrases only
 - Current timing target: 6 seconds total
 - Completion text: "Your Dharma plan is ready."
 - Fun fact: "The Bhagavad Gita contains 700 verses spoken over a single day on the battlefield of Kurukshetra."
 
-### 15. Premium Value Proposition
+### 16. Premium Value Proposition
 
 - Heading: "Premium - what you unlock"
 - Value points:

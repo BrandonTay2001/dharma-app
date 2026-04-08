@@ -9,8 +9,6 @@ struct WelcomeView: View {
             background
 
             VStack(spacing: 0) {
-                Spacer(minLength: DharmaTheme.Spacing.md)
-
                 hero
 
                 Spacer(minLength: DharmaTheme.Spacing.xl)
@@ -22,7 +20,8 @@ struct WelcomeView: View {
                 footer
             }
             .padding(.horizontal, DharmaTheme.Spacing.xl)
-            .padding(.vertical, DharmaTheme.Spacing.xxl)
+            .padding(.top, DharmaTheme.Spacing.md)
+            .padding(.bottom, DharmaTheme.Spacing.xxl)
         }
     }
 
@@ -41,7 +40,7 @@ struct WelcomeView: View {
     }
 
     private var hero: some View {
-        VStack(spacing: DharmaTheme.Spacing.md) {
+        VStack(spacing: DharmaTheme.Spacing.md / 3) {
             Text("Dharma's Journey")
                 .font(DharmaTheme.Typography.uiLabel(12))
                 .kerning(1.6)

@@ -18,6 +18,7 @@ final class OnboardingViewModel {
         case productTour
         case socialProof
         case notifications
+        case widgets
         case generatingPlan
         case premium
 
@@ -46,6 +47,8 @@ final class OnboardingViewModel {
             case .socialProof:
                 return 0.94
             case .notifications:
+                return 0.97
+            case .widgets:
                 return 0.98
             case .generatingPlan, .premium:
                 return 1.0
@@ -305,7 +308,7 @@ final class OnboardingViewModel {
 
     var canContinue: Bool {
         switch currentStep {
-        case .intro, .consent, .gender, .ageRange, .productTour, .socialProof, .notifications, .premium:
+        case .intro, .consent, .gender, .ageRange, .productTour, .socialProof, .notifications, .widgets, .premium:
             return true
         case .name:
             return !trimmedName.isEmpty
@@ -353,6 +356,8 @@ final class OnboardingViewModel {
         case .socialProof:
             currentStep = .notifications
         case .notifications:
+            currentStep = .widgets
+        case .widgets:
             currentStep = .generatingPlan
         case .generatingPlan, .premium:
             break
@@ -385,10 +390,12 @@ final class OnboardingViewModel {
             currentStep = .productTour
         case .notifications:
             currentStep = .socialProof
+        case .widgets:
+            currentStep = .notifications
         case .generatingPlan:
-            currentStep = .notifications
+            currentStep = .widgets
         case .premium:
-            currentStep = .notifications
+            currentStep = .widgets
         }
     }
 

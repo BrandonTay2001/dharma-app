@@ -114,6 +114,8 @@ struct OnboardingView: View {
             socialProofStep
         case .notifications:
             notificationsStep
+        case .widgets:
+            widgetsStep
         case .generatingPlan:
             generatingStep
         case .premium:
@@ -180,6 +182,8 @@ struct OnboardingView: View {
             return "Build my plan"
         case .notifications:
             return "Allow Notifications"
+        case .widgets:
+            return "Continue"
         default:
             return "Continue"
         }
@@ -522,6 +526,27 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity)
     }
 
+    private var widgetsStep: some View {
+        VStack(spacing: DharmaTheme.Spacing.xxxl) {
+            VStack(spacing: DharmaTheme.Spacing.lg) {
+                Text("Dharma Brings Spirituality to your Home Screen")
+                    .font(DharmaTheme.Typography.scriptureHeadline(34))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+                    .multilineTextAlignment(.center)
+
+                Text("Stay consistent with your daily verses as widgets - all part of your personalized spirituality plan!")
+                    .font(DharmaTheme.Typography.uiBody(16))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(.top, 72)
+
+            widgetPreviewCard
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private var notificationPromptCard: some View {
         VStack(spacing: 0) {
             VStack(spacing: DharmaTheme.Spacing.md) {
@@ -562,6 +587,59 @@ struct OnboardingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: Color.black.opacity(0.08), radius: 28, x: 0, y: 16)
+        .padding(.horizontal, DharmaTheme.Spacing.md)
+    }
+
+    private var widgetPreviewCard: some View {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.lg) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xs) {
+                    Text("Daily Verse")
+                        .font(DharmaTheme.Typography.uiCaption(12))
+                        .foregroundColor(DharmaTheme.Colors.saffronDark)
+
+                    Text("Truth is one; the wise call it by many names.")
+                        .font(DharmaTheme.Typography.scriptureHeadline(22))
+                        .foregroundColor(DharmaTheme.Colors.onSurface)
+                        .lineSpacing(4)
+                }
+
+                Spacer()
+
+                Image(systemName: "sparkles.rectangle.stack.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(DharmaTheme.Colors.saffron)
+            }
+
+            Text("A calm reminder from your practice, right on the Home Screen.")
+                .font(DharmaTheme.Typography.uiBody(15))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                .lineSpacing(4)
+
+            HStack(spacing: DharmaTheme.Spacing.sm) {
+                Label("Daily verse", systemImage: "sun.max.fill")
+                Label("One-tap reflection", systemImage: "hand.tap.fill")
+            }
+            .font(DharmaTheme.Typography.uiCaption(13))
+            .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
+        }
+        .padding(DharmaTheme.Spacing.xl)
+        .background(
+            LinearGradient(
+                colors: [
+                    DharmaTheme.Colors.surfaceContainerLowest.opacity(0.98),
+                    DharmaTheme.Colors.cardHindu.opacity(0.85)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(Color.black.opacity(0.06), lineWidth: 1)
         }
         .shadow(color: Color.black.opacity(0.08), radius: 28, x: 0, y: 16)

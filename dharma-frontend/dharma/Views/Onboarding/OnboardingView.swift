@@ -104,8 +104,6 @@ struct OnboardingView: View {
             ageRangeStep
         case .goals:
             goalsStep
-        case .guidedSupport:
-            guidedSupportStep
         case .practices:
             practicesStep
         case .timeAvailable:
@@ -114,6 +112,8 @@ struct OnboardingView: View {
             productTourStep
         case .socialProof:
             socialProofStep
+        case .notifications:
+            notificationsStep
         case .generatingPlan:
             generatingStep
         case .premium:
@@ -160,11 +160,9 @@ struct OnboardingView: View {
     }
 
     private func handleContinueTap() {
-        if viewModel.currentStep == .socialProof {
-            requestReview()
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                viewModel.advance()
+        if viewModel.currentStep == .notifications {
+            Task {
+                await viewModel.requestNotificationPermission()
             }
             return
         }
@@ -180,6 +178,8 @@ struct OnboardingView: View {
             return "I understand - let's continue"
         case .timeAvailable:
             return "Build my plan"
+        case .notifications:
+            return "Allow Notifications"
         default:
             return "Continue"
         }
@@ -192,19 +192,6 @@ struct OnboardingView: View {
                     .font(DharmaTheme.Typography.scriptureDisplay(38))
                     .foregroundColor(DharmaTheme.Colors.onSurface)
                     .multilineTextAlignment(.center)
-
-                Text("Guided by ancient wisdom. Built for your life today.")
-                    .font(DharmaTheme.Typography.uiHeadline(21))
-                    .foregroundColor(DharmaTheme.Colors.saffron)
-                    .multilineTextAlignment(.center)
-
-                Text("Your AI spiritual mentor")
-                    .font(DharmaTheme.Typography.uiCaption(14))
-                    .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
-                    .padding(.horizontal, DharmaTheme.Spacing.lg)
-                    .padding(.vertical, DharmaTheme.Spacing.sm)
-                    .background(DharmaTheme.Colors.surfaceContainerLowest.opacity(0.92))
-                    .clipShape(Capsule())
             }
             .padding(.top, DharmaTheme.Spacing.xxxl)
 
@@ -254,8 +241,7 @@ struct OnboardingView: View {
     private var consentStep: some View {
         stepLayout(
             eyebrow: "Consent",
-            title: "Your journey, your data.",
-            subtitle: "Dharma personalises your spiritual path using the information you share. We never sell your data, and you can delete everything at any time."
+            title: "Your journey, your data."
         ) {
             VStack(spacing: DharmaTheme.Spacing.lg) {
                 infoCard(
@@ -274,8 +260,7 @@ struct OnboardingView: View {
     private var nameStep: some View {
         stepLayout(
             eyebrow: "Profile",
-            title: "What's your name?",
-            subtitle: "We'll use it to make your plan feel personal across the app."
+            title: "What's your name?"
         ) {
             VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
                 Text("Name")
@@ -295,14 +280,12 @@ struct OnboardingView: View {
     private var beliefStep: some View {
         stepLayout(
             eyebrow: "Tradition",
-            title: "What tradition speaks to your soul?",
-            subtitle: "This shapes your daily verse, mentor, and practice. You can change it anytime."
+            title: "What tradition speaks to your soul?"
         ) {
             optionList(
                 items: OnboardingViewModel.SpiritualBelief.allCases,
                 selectionContains: { viewModel.selectedBeliefs.contains($0) },
                 title: \ .title,
-                detail: \ .detail,
                 action: viewModel.toggleBelief
             )
         }
@@ -311,14 +294,12 @@ struct OnboardingView: View {
     private var genderStep: some View {
         stepLayout(
             eyebrow: "Identity",
-            title: "How do you identify?",
-            subtitle: "Optional. This helps personalise some practice recommendations."
+            title: "How do you identify?"
         ) {
             optionList(
                 items: OnboardingViewModel.GenderIdentity.allCases,
                 selectionContains: { viewModel.gender == $0 },
                 title: \ .title,
-                detail: { _ in nil },
                 action: { viewModel.gender = $0 }
             )
         }
@@ -327,14 +308,12 @@ struct OnboardingView: View {
     private var ageRangeStep: some View {
         stepLayout(
             eyebrow: "Age range",
-            title: "What's your age range?",
-            subtitle: "Optional. We'll adjust the depth and tone of your content accordingly."
+            title: "What's your age range?"
         ) {
             optionList(
                 items: OnboardingViewModel.AgeRange.allCases,
                 selectionContains: { viewModel.ageRange == $0 },
                 title: \ .title,
-                detail: { _ in nil },
                 action: { viewModel.ageRange = $0 }
             )
         }
@@ -343,8 +322,7 @@ struct OnboardingView: View {
     private var goalsStep: some View {
         stepLayout(
             eyebrow: "Goal",
-            title: "What brings you here today?",
-            subtitle: "Choose up to 2. Your personalised plan will be built around these."
+            title: "What brings you here today?"
         ) {
             VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
                 Text("Selected: \(viewModel.selectedGoals.count)/2")
@@ -355,55 +333,8 @@ struct OnboardingView: View {
                     items: OnboardingViewModel.Goal.allCases,
                     selectionContains: { viewModel.selectedGoals.contains($0) },
                     title: \ .title,
-                    detail: \ .detail,
                     action: viewModel.toggleGoal
                 )
-            }
-        }
-    }
-
-    private var guidedSupportStep: some View {
-        stepLayout(
-            eyebrow: "Why Dharma helps",
-            title: "Reach your goal twice as quickly with Dharma",
-            subtitle: "A clear daily plan removes guesswork and keeps your practice consistent."
-        ) {
-            VStack(spacing: DharmaTheme.Spacing.xl) {
-                VStack(spacing: DharmaTheme.Spacing.lg) {
-                    HStack(alignment: .bottom, spacing: DharmaTheme.Spacing.lg) {
-                        comparisonColumn(
-                            title: "On your own",
-                            fill: DharmaTheme.Colors.surfaceContainerLow,
-                            badgeText: "Slow",
-                            badgeFill: DharmaTheme.Colors.surfaceContainer,
-                            height: 138,
-                            badgeTextColor: DharmaTheme.Colors.onSurfaceVariant
-                        )
-
-                        comparisonColumn(
-                            title: "With Dharma",
-                            fill: DharmaTheme.Colors.saffronGradient,
-                            badgeText: "2x",
-                            badgeFill: DharmaTheme.Colors.saffronDark,
-                            height: 210,
-                            badgeTextColor: .white
-                        )
-                    }
-                }
-                .padding(DharmaTheme.Spacing.xl)
-                .frame(maxWidth: .infinity)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            DharmaTheme.Colors.surfaceContainerLowest.opacity(0.98),
-                            DharmaTheme.Colors.cardHindu.opacity(0.78),
-                            DharmaTheme.Colors.cardBuddhist.opacity(0.52)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.xl, style: .continuous))
             }
         }
     }
@@ -411,14 +342,12 @@ struct OnboardingView: View {
     private var practicesStep: some View {
         stepLayout(
             eyebrow: "Practice preferences",
-            title: "Which practices call to you?",
-            subtitle: "Your daily dharmic task will include these. Select all that resonate."
+            title: "Which practices call to you?"
         ) {
             optionList(
                 items: OnboardingViewModel.Practice.allCases,
                 selectionContains: { viewModel.selectedPractices.contains($0) },
                 title: \ .title,
-                detail: \ .detail,
                 action: viewModel.togglePractice
             )
         }
@@ -427,14 +356,12 @@ struct OnboardingView: View {
     private var dailyTimeStep: some View {
         stepLayout(
             eyebrow: "Time available",
-            title: "How much time can you give to your practice each day?",
-            subtitle: "Be realistic. Five minutes done daily is more powerful than an hour done once a week."
+            title: "How much time can you give to your practice each day?"
         ) {
             optionList(
                 items: OnboardingViewModel.DailyTime.allCases,
                 selectionContains: { viewModel.dailyTime == $0 },
                 title: \ .title,
-                detail: \ .detail,
                 action: { viewModel.dailyTime = $0 }
             )
         }
@@ -501,11 +428,24 @@ struct OnboardingView: View {
     }
 
     private var socialProofStep: some View {
-        stepLayout(
-            eyebrow: "Why seekers stay",
-            title: "A calmer ritual, not another noisy wellness app",
-            subtitle: "People use Dharma to keep one grounded thread of practice through work, family, and ordinary life."
-        ) {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xl) {
+            VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
+                Text("WHY SEEKERS STAY")
+                    .font(DharmaTheme.Typography.uiLabel(12))
+                    .kerning(1.2)
+                    .foregroundColor(DharmaTheme.Colors.saffronDark)
+
+                HStack {
+                    Spacer()
+                    reviewBanner
+                    Spacer()
+                }
+
+                Text("A calmer ritual, not another noisy wellness app")
+                    .font(DharmaTheme.Typography.scriptureHeadline(32))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+            }
+
             VStack(spacing: DharmaTheme.Spacing.lg) {
                 statisticCard(value: "5 min", label: "Daily practice is enough to create momentum")
                 statisticCard(value: "700+", label: "Verses and teachings across the library")
@@ -513,6 +453,119 @@ struct OnboardingView: View {
                 socialQuote("The app tells me exactly what to do each morning, which makes consistency easier.")
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .task {
+            guard !viewModel.hasRequestedReviewPrompt else {
+                return
+            }
+
+            viewModel.hasRequestedReviewPrompt = true
+            requestReview()
+        }
+    }
+
+    private var reviewBanner: some View {
+        VStack(spacing: DharmaTheme.Spacing.xs) {
+            HStack(spacing: DharmaTheme.Spacing.sm) {
+                Text("4.8")
+                    .font(.system(size: 23, weight: .bold, design: .rounded))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+
+                HStack(spacing: 3) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(DharmaTheme.Colors.saffron)
+                    }
+                }
+            }
+
+            Text("100K+ App Ratings")
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+        }
+        .padding(.horizontal, DharmaTheme.Spacing.lg)
+        .padding(.vertical, DharmaTheme.Spacing.lg)
+        .background(DharmaTheme.Colors.surfaceContainerLow.opacity(0.92))
+        .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.xl, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: DharmaTheme.Radius.xl, style: .continuous)
+                .stroke(Color.black.opacity(0.05), lineWidth: 1)
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private var notificationsStep: some View {
+        VStack(spacing: DharmaTheme.Spacing.xxxl) {
+            VStack(spacing: DharmaTheme.Spacing.lg) {
+                Text("Dharma keeps you consistent through routine notifications")
+                    .font(DharmaTheme.Typography.scriptureHeadline(34))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+                    .multilineTextAlignment(.center)
+
+                Text("A gentle reminder for your verse, practice, and reflection helps your ritual stay steady even on busy days.")
+                    .font(DharmaTheme.Typography.uiBody(16))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(.top, 72)
+
+            notificationPromptCard
+
+            Text("We only use notifications for your daily Dharma routine. You can change this any time in Settings.")
+                .font(DharmaTheme.Typography.uiCaption(13))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var notificationPromptCard: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: DharmaTheme.Spacing.md) {
+                Image(systemName: "bell.badge.fill")
+                    .font(.system(size: 26, weight: .medium))
+                    .foregroundColor(DharmaTheme.Colors.saffron)
+                    .frame(width: 56, height: 56)
+                    .background(DharmaTheme.Colors.saffron.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
+
+                Text("Dharma would like to send you notifications")
+                    .font(DharmaTheme.Typography.uiHeadline(20))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+            }
+            .padding(.horizontal, DharmaTheme.Spacing.xl)
+            .padding(.vertical, DharmaTheme.Spacing.xxl)
+            .frame(maxWidth: .infinity)
+            .background(DharmaTheme.Colors.surfaceContainerLowest.opacity(0.98))
+
+            HStack(spacing: 0) {
+                Text("Don't Allow")
+                    .font(DharmaTheme.Typography.uiBody(16))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DharmaTheme.Spacing.lg)
+                    .background(Color.black.opacity(0.04))
+
+                Text("Allow")
+                    .font(DharmaTheme.Typography.uiHeadline(16))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DharmaTheme.Spacing.lg)
+                    .background(DharmaTheme.Colors.saffron)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: Color.black.opacity(0.08), radius: 28, x: 0, y: 16)
+        .padding(.horizontal, DharmaTheme.Spacing.md)
     }
 
     private var generatingStep: some View {
@@ -548,7 +601,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func stepLayout<Content: View>(eyebrow: String, title: String, subtitle: String, @ViewBuilder content: () -> Content) -> some View {
+    private func stepLayout<Content: View>(eyebrow: String, title: String, subtitle: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xl) {
             VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
                 Text(eyebrow.uppercased())
@@ -560,10 +613,12 @@ struct OnboardingView: View {
                     .font(DharmaTheme.Typography.scriptureHeadline(32))
                     .foregroundColor(DharmaTheme.Colors.onSurface)
 
-                Text(subtitle)
-                    .font(DharmaTheme.Typography.uiBody(16))
-                    .foregroundColor(DharmaTheme.Colors.secondaryText)
-                    .lineSpacing(4)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(DharmaTheme.Typography.uiBody(16))
+                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+                        .lineSpacing(4)
+                }
             }
 
             content()
@@ -649,44 +704,10 @@ struct OnboardingView: View {
         .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
     }
 
-    private func comparisonColumn(
-        title: String,
-        fill: some ShapeStyle,
-        badgeText: String,
-        badgeFill: Color,
-        height: CGFloat,
-        badgeTextColor: Color
-    ) -> some View {
-        VStack(spacing: DharmaTheme.Spacing.md) {
-            Text(title)
-                .font(DharmaTheme.Typography.uiHeadline(16))
-                .foregroundColor(DharmaTheme.Colors.onSurface)
-                .multilineTextAlignment(.center)
-
-            Spacer(minLength: 0)
-
-            RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous)
-                .fill(fill)
-                .frame(maxWidth: .infinity)
-                .frame(height: height)
-                .overlay(alignment: .bottom) {
-                    Text(badgeText)
-                        .font(DharmaTheme.Typography.uiHeadline(14))
-                        .foregroundColor(badgeTextColor)
-                        .padding(.vertical, DharmaTheme.Spacing.md)
-                        .frame(maxWidth: .infinity)
-                        .background(badgeFill)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
-        }
-        .frame(maxWidth: .infinity)
-    }
-
     private func optionList<Item: Identifiable>(
         items: [Item],
         selectionContains: @escaping (Item) -> Bool,
         title: KeyPath<Item, String>,
-        detail: @escaping (Item) -> String?,
         action: @escaping (Item) -> Void
     ) -> some View {
         VStack(spacing: DharmaTheme.Spacing.md) {
@@ -700,13 +721,6 @@ struct OnboardingView: View {
                                 .font(DharmaTheme.Typography.uiHeadline(16))
                                 .foregroundColor(DharmaTheme.Colors.onSurface)
                                 .multilineTextAlignment(.leading)
-
-                            if let detailText = detail(item) {
-                                Text(detailText)
-                                    .font(DharmaTheme.Typography.uiBody(14))
-                                    .foregroundColor(DharmaTheme.Colors.secondaryText)
-                                    .multilineTextAlignment(.leading)
-                            }
                         }
 
                         Spacer()
@@ -717,7 +731,14 @@ struct OnboardingView: View {
                     }
                     .padding(DharmaTheme.Spacing.lg)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(selectionContains(item) ? DharmaTheme.Colors.cardHindu.opacity(0.72) : DharmaTheme.Colors.surfaceContainerLowest.opacity(0.94))
+                    .background(DharmaTheme.Colors.surfaceContainerLowest.opacity(0.94))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous)
+                            .stroke(
+                                selectionContains(item) ? DharmaTheme.Colors.saffron : Color.clear,
+                                lineWidth: 2
+                            )
+                    }
                     .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
                 }
                 .buttonStyle(.plain)

@@ -22,8 +22,9 @@ It introduces the app, collects enough context to personalise the experience, ex
 10. Time Available Daily
 11. What Dharma Does
 12. Social Proof
-13. Generating Your Plan
-14. Premium Value Proposition
+13. Notifications
+14. Generating Your Plan
+15. Premium Value Proposition
 
 ## Screen Details
 
@@ -56,11 +57,10 @@ It introduces the app, collects enough context to personalise the experience, ex
 - Minimum selection: 1
 - CTA: "Continue"
 - Options:
-  - Hinduism: Vedas, Gita, deity calendar
-  - Buddhism: Dhammapada, mindfulness
-  - Spiritual / meditative: not religious, inner focus
-  - Not religious - just mindful: calm, clarity, no doctrine
-  - I'm exploring all paths: show me everything
+  - Hinduism
+  - Buddhism
+  - Spiritual, not religious
+  - I'm exploring both traditions
 
 ### 5. Gender
 
@@ -91,15 +91,11 @@ It introduces the app, collects enough context to personalise the experience, ex
 - Helper text: choose up to 2; the personalised plan will be built around these
 - CTA: "Continue"
 - Options:
-  - Find inner peace and calm: reduce anxiety, quiet the mind
-  - Understand sacred texts: Gita, Vedas, Dhammapada
-  - Build a daily spiritual practice: consistency and routine
-  - Find my spiritual path: still exploring, seeking clarity
-  - Deepen my religious knowledge: go beyond the basics
-  - Manage stress and anxiety: tools for difficult moments
-  - Reconnect with my roots: grew up with this tradition, want to return
-
-### 8. Practice Preferences
+  - Find inner peace and calm
+  - Understand sacred texts
+  - Build a daily spiritual practice
+  - Find my spiritual path
+  - Reconnect with my roots
 
 ### 8. Why Dharma Helps
 
@@ -113,32 +109,30 @@ It introduces the app, collects enough context to personalise the experience, ex
   - Personal rhythm built from goals and available time
 - CTA: "Continue"
 
-### 9. Practice Preferences
+### 8. Practice Preferences
 
 - Question: "Which practices call to you?"
 - Helper text: your daily dharmic task will include these; select all that resonate
 - CTA: "Continue"
 - Options:
-  - Breathwork: pranayama, breathing exercises
-  - Guided meditation: audio-led sessions
-  - Chanting / mantras: Om, Gayatri, affirmations
-  - Prayer / rituals: puja, offerings, lighting lamps
-  - Scripture reading: verses, sutras, sacred text
-  - Journaling / reflection: prompted daily writing
-  - Silent sitting: no guidance, just stillness
+  - Breathwork
+  - Guided meditation
+  - Chanting / mantras
+  - Scripture reading
+  - Journaling / reflection
 
-### 10. Time Available Daily
+### 9. Time Available Daily
 
 - Question: "How much time can you give to your practice each day?"
 - Helper text: "Be realistic. 5 minutes done daily is more powerful than an hour done once a week."
 - CTA: "Build my plan"
 - Options:
-  - 5 minutes: a morning verse and one breath exercise
-  - 10-15 minutes: verse plus short meditation or mantra
-  - 20-30 minutes: full practice with ritual
-  - 30+ minutes: deep daily sadhana
+  - 5 minutes
+  - 10-15 minutes
+  - 20-30 minutes
+  - 30+ minutes
 
-### 11. What Dharma Does
+### 10. What Dharma Does
 
 Three swipeable panels.
 
@@ -158,19 +152,27 @@ Three swipeable panels.
 - Body: Dharma tells the user exactly what to do each morning, aligned with the Hindu and Buddhist calendar
 - Example: "Today is Ekadasi. Fast until sunset. Chant: Om Namo Bhagavate Vasudevaya. 7 min pranayama."
 
-### 12. Social Proof
+### 11. Social Proof
 
 - Social proof / reassurance screen
 - CTA: "Continue"
 
-### 13. Generating Your Plan
+### 13. Notifications
+
+- Headline: "Dharma keeps you consistent through routine notifications"
+- Body: explain that gentle reminders help the user return for daily verse, meditation, mantra, and reflection
+- Visual: stylised iOS-like permission card with "Don't Allow" and "Allow"
+- Primary CTA: "Allow Notifications"
+- Behavior: tapping the CTA should trigger the iOS notification permission prompt, then continue onboarding
+
+### 14. Generating Your Plan
 
 - Short loading phrases only
 - Current timing target: 6 seconds total
 - Completion text: "Your Dharma plan is ready."
 - Fun fact: "The Bhagavad Gita contains 700 verses spoken over a single day on the battlefield of Kurukshetra."
 
-### 14. Premium Value Proposition
+### 15. Premium Value Proposition
 
 - Heading: "Premium - what you unlock"
 - Value points:

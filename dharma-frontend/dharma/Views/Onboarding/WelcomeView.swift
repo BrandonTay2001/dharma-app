@@ -9,7 +9,7 @@ struct WelcomeView: View {
             background
 
             VStack(spacing: 0) {
-                Spacer(minLength: DharmaTheme.Spacing.xxl)
+                Spacer(minLength: DharmaTheme.Spacing.md)
 
                 hero
 
@@ -37,24 +37,12 @@ struct WelcomeView: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .overlay(alignment: .topTrailing) {
-            Circle()
-                .fill(DharmaTheme.Colors.saffron.opacity(0.08))
-                .frame(width: 220, height: 220)
-                .offset(x: 70, y: -40)
-        }
-        .overlay(alignment: .bottomLeading) {
-            Circle()
-                .fill(DharmaTheme.Colors.cardBuddhist.opacity(0.55))
-                .frame(width: 180, height: 180)
-                .offset(x: -70, y: 40)
-        }
         .ignoresSafeArea()
     }
 
     private var hero: some View {
         VStack(spacing: DharmaTheme.Spacing.md) {
-            Text("Premium")
+            Text("Dharma's Journey")
                 .font(DharmaTheme.Typography.uiLabel(12))
                 .kerning(1.6)
                 .foregroundColor(DharmaTheme.Colors.saffronDark)
@@ -62,13 +50,6 @@ struct WelcomeView: View {
             Text("What you unlock")
                 .font(DharmaTheme.Typography.scriptureDisplay(40))
                 .foregroundColor(DharmaTheme.Colors.onSurface)
-
-            Text(heroSubtitle)
-                .font(DharmaTheme.Typography.uiBody(17))
-                .foregroundColor(DharmaTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.horizontal, DharmaTheme.Spacing.md)
         }
     }
 
@@ -76,8 +57,8 @@ struct WelcomeView: View {
         VStack(spacing: DharmaTheme.Spacing.md) {
             benefitCard(
                 symbol: "calendar.badge.clock",
-                title: "Full personalised daily dharmic task",
-                detail: "A plan shaped around \(onboardingViewModel.primaryGoalSummary.lowercased()) and your chosen practices."
+                title: "Full personalised daily dharmic tasks",
+                detail: "A plan shaped around your spiritual goals and chosen practices."
             )
 
             benefitCard(
@@ -88,8 +69,8 @@ struct WelcomeView: View {
 
             benefitCard(
                 symbol: "bubble.left.and.bubble.right",
-                title: "Unlimited AI spiritual mentor",
-                detail: "Ask as many follow-up questions as you need, then move into meditations, breathwork, and the full verse library."
+                title: "AI spiritual mentor",
+                detail: "Receive guidance on your spirituality on a daily basis, and ask follow-up questions on complex verses."
             )
 
             benefitCard(
@@ -105,15 +86,10 @@ struct WelcomeView: View {
             Button {
                 viewModel.presentPreLoginPaywall()
             } label: {
-                Text("Let's go")
+                Text("Get Started")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.saffron)
-
-            Text("You'll continue to account access once premium is active.")
-                .font(DharmaTheme.Typography.uiCaption())
-                .foregroundColor(DharmaTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -123,14 +99,6 @@ struct WelcomeView: View {
             }
         }
     }
-
-    private var heroSubtitle: String {
-        let nameFragment = onboardingViewModel.trimmedName.isEmpty ? "" : "\(onboardingViewModel.trimmedName), "
-        let goalFragment = onboardingViewModel.secondaryGoalSummary.map { " and \($0)" } ?? ""
-
-        return "\(nameFragment)your plan is ready for \(onboardingViewModel.primaryGoalSummary.lowercased())\(goalFragment), with \(onboardingViewModel.selectedPracticeSummary)."
-    }
-
     private func benefitCard(symbol: String, title: String, detail: String) -> some View {
         HStack(alignment: .top, spacing: DharmaTheme.Spacing.md) {
             ZStack {

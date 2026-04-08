@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UserNotifications
 
 @Observable
 @MainActor
@@ -12,11 +13,11 @@ final class OnboardingViewModel {
         case gender
         case ageRange
         case goals
-        case guidedSupport
         case practices
         case timeAvailable
         case productTour
         case socialProof
+        case notifications
         case generatingPlan
         case premium
 
@@ -35,17 +36,17 @@ final class OnboardingViewModel {
             case .ageRange:
                 return 0.48
             case .goals:
-                return 0.56
-            case .guidedSupport:
-                return 0.64
+                return 0.58
             case .practices:
-                return 0.72
+                return 0.68
             case .timeAvailable:
-                return 0.80
+                return 0.78
             case .productTour:
                 return 0.88
             case .socialProof:
                 return 0.94
+            case .notifications:
+                return 0.98
             case .generatingPlan, .premium:
                 return 1.0
             }
@@ -64,7 +65,6 @@ final class OnboardingViewModel {
         case hinduism
         case buddhism
         case spiritualMeditative
-        case mindful
         case exploring
 
         var id: String { rawValue }
@@ -76,26 +76,9 @@ final class OnboardingViewModel {
             case .buddhism:
                 return "Buddhism"
             case .spiritualMeditative:
-                return "Spiritual / meditative"
-            case .mindful:
-                return "Not religious - just mindful"
+                return "Spiritual, not religious"
             case .exploring:
                 return "I'm exploring all paths"
-            }
-        }
-
-        var detail: String {
-            switch self {
-            case .hinduism:
-                return "Vedas, Gita, deity calendar"
-            case .buddhism:
-                return "Dhammapada, mindfulness"
-            case .spiritualMeditative:
-                return "Not religious, inner focus"
-            case .mindful:
-                return "Calm, clarity, no doctrine"
-            case .exploring:
-                return "Show me everything"
             }
         }
     }
@@ -152,8 +135,6 @@ final class OnboardingViewModel {
         case understandTexts
         case dailyPractice
         case findPath
-        case deepenKnowledge
-        case manageStress
         case reconnectRoots
 
         var id: String { rawValue }
@@ -168,31 +149,8 @@ final class OnboardingViewModel {
                 return "Build a daily spiritual practice"
             case .findPath:
                 return "Find my spiritual path"
-            case .deepenKnowledge:
-                return "Deepen my religious knowledge"
-            case .manageStress:
-                return "Manage stress and anxiety"
             case .reconnectRoots:
                 return "Reconnect with my roots"
-            }
-        }
-
-        var detail: String {
-            switch self {
-            case .innerPeace:
-                return "Reduce anxiety, quiet the mind"
-            case .understandTexts:
-                return "Gita, Vedas, Dhammapada"
-            case .dailyPractice:
-                return "Consistency and routine"
-            case .findPath:
-                return "Still exploring, seeking clarity"
-            case .deepenKnowledge:
-                return "Go beyond the basics"
-            case .manageStress:
-                return "Tools for difficult moments"
-            case .reconnectRoots:
-                return "Return to a tradition you grew up with"
             }
         }
     }
@@ -201,10 +159,8 @@ final class OnboardingViewModel {
         case breathwork
         case guidedMeditation
         case chanting
-        case prayerRituals
         case scriptureReading
         case journaling
-        case silentSitting
 
         var id: String { rawValue }
 
@@ -216,33 +172,10 @@ final class OnboardingViewModel {
                 return "Guided meditation"
             case .chanting:
                 return "Chanting / mantras"
-            case .prayerRituals:
-                return "Prayer / rituals"
             case .scriptureReading:
                 return "Scripture reading"
             case .journaling:
                 return "Journaling / reflection"
-            case .silentSitting:
-                return "Silent sitting"
-            }
-        }
-
-        var detail: String {
-            switch self {
-            case .breathwork:
-                return "Pranayama and breathing exercises"
-            case .guidedMeditation:
-                return "Audio-led sessions"
-            case .chanting:
-                return "Om, Gayatri, affirmations"
-            case .prayerRituals:
-                return "Puja, offerings, lighting lamps"
-            case .scriptureReading:
-                return "Verses, sutras, sacred text"
-            case .journaling:
-                return "Prompted daily writing"
-            case .silentSitting:
-                return "No guidance, just stillness"
             }
         }
     }
@@ -265,19 +198,6 @@ final class OnboardingViewModel {
                 return "20-30 minutes"
             case .thirtyPlus:
                 return "30+ minutes"
-            }
-        }
-
-        var detail: String {
-            switch self {
-            case .fiveMinutes:
-                return "A morning verse and one breath exercise"
-            case .tenToFifteen:
-                return "Verse plus a short meditation or mantra"
-            case .twentyToThirty:
-                return "A full practice with ritual"
-            case .thirtyPlus:
-                return "Deep daily sadhana"
             }
         }
     }
@@ -311,6 +231,7 @@ final class OnboardingViewModel {
     var loadingMessageIndex = 0
     var isGeneratingPlan = false
     var showSignInAlert = false
+    var hasRequestedReviewPrompt = false
 
     let productPanels: [ProductPanel] = [
         ProductPanel(
@@ -384,7 +305,7 @@ final class OnboardingViewModel {
 
     var canContinue: Bool {
         switch currentStep {
-        case .intro, .consent, .gender, .ageRange, .guidedSupport, .productTour, .socialProof, .premium:
+        case .intro, .consent, .gender, .ageRange, .productTour, .socialProof, .notifications, .premium:
             return true
         case .name:
             return !trimmedName.isEmpty
@@ -422,8 +343,6 @@ final class OnboardingViewModel {
         case .ageRange:
             currentStep = .goals
         case .goals:
-            currentStep = .guidedSupport
-        case .guidedSupport:
             currentStep = .practices
         case .practices:
             currentStep = .timeAvailable
@@ -432,6 +351,8 @@ final class OnboardingViewModel {
         case .productTour:
             currentStep = .socialProof
         case .socialProof:
+            currentStep = .notifications
+        case .notifications:
             currentStep = .generatingPlan
         case .generatingPlan, .premium:
             break
@@ -454,21 +375,37 @@ final class OnboardingViewModel {
             currentStep = .gender
         case .goals:
             currentStep = .ageRange
-        case .guidedSupport:
-            currentStep = .goals
         case .practices:
-            currentStep = .guidedSupport
+            currentStep = .goals
         case .timeAvailable:
             currentStep = .practices
         case .productTour:
             currentStep = .timeAvailable
         case .socialProof:
             currentStep = .productTour
+        case .notifications:
+            currentStep = .socialProof
         case .generatingPlan:
-            currentStep = .socialProof
+            currentStep = .notifications
         case .premium:
-            currentStep = .socialProof
+            currentStep = .notifications
         }
+    }
+
+    func requestNotificationPermission() async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+
+        switch settings.authorizationStatus {
+        case .notDetermined:
+            _ = try? await center.requestAuthorization(options: [.alert, .badge, .sound])
+        case .authorized, .provisional, .ephemeral, .denied:
+            break
+        @unknown default:
+            break
+        }
+
+        advance()
     }
 
     func toggleBelief(_ belief: SpiritualBelief) {

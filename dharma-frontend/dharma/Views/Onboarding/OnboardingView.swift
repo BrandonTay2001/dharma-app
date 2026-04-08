@@ -255,7 +255,7 @@ struct OnboardingView: View {
 
                 infoCard(
                     title: "Transparency",
-                    body: "Dharma is built upon timeless Hindu and Buddhist teachings that are widely available in the public domain, presented as a clean sanctuary for modern mindfulness."
+                    body: "Dharma is built upon timeless Hindu and Buddhist teachings that are freely available in the public domain, presented as a clean sanctuary for modern mindfulness."
                 )
             }
         }

@@ -116,6 +116,8 @@ struct DailyVerseReflectionStore {
             return "journal"
         case .gratitude:
             return "gratitude"
+        case .sacredDates:
+            return "sacredDates"
         }
     }
 

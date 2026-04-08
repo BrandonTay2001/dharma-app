@@ -39,6 +39,10 @@ final class HomeViewModel {
         "\(Int(progressPercentage * 100))%"
     }
 
+    var upcomingSacredDates: [SacredObservance] {
+        SacredObservancePlanner.nextSevenDays()
+    }
+
     func refreshForCurrentContext() async {
         await loadCurrentUser()
         applyStoredProgress()

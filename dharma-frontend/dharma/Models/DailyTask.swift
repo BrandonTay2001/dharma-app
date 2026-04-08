@@ -18,6 +18,7 @@ struct DailyTask: Identifiable {
         case mantra
         case journal
         case gratitude
+        case sacredDates
     }
 }
 
@@ -38,6 +39,8 @@ extension DailyTask.TaskType {
             return "journal"
         case .gratitude:
             return "gratitude"
+        case .sacredDates:
+            return "sacredDates"
         }
     }
 
@@ -144,6 +147,15 @@ extension DailyTask {
             color: DharmaTheme.Colors.cardGratitude,
             isCompleted: false,
             taskType: .gratitude
+        ),
+        DailyTask(
+            title: "SACRED\nOBSERVANCE",
+            subtitle: "Hindu & Buddhist",
+            duration: "1 MIN",
+            icon: "🪔",
+            color: DharmaTheme.Colors.cardHindu,
+            isCompleted: false,
+            taskType: .sacredDates
         ),
     ]
 }

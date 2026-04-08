@@ -2,7 +2,38 @@ import SwiftUI
 
 struct DailyTaskCard: View {
     let task: DailyTask
+    let actionTitle: String?
     let onTap: () -> Void
+
+    init(task: DailyTask, actionTitle: String? = nil, onTap: @escaping () -> Void) {
+        self.task = task
+        self.actionTitle = actionTitle
+        self.onTap = onTap
+    }
+
+    private var statusTitle: String {
+        if let actionTitle {
+            return actionTitle
+        }
+
+        return task.isCompleted ? "DONE" : "START"
+    }
+
+    private var statusForegroundColor: Color {
+        if actionTitle != nil {
+            return .white
+        }
+
+        return task.isCompleted ? DharmaTheme.Colors.onSurface : .white
+    }
+
+    private var statusBackgroundColor: Color {
+        if actionTitle != nil {
+            return DharmaTheme.Colors.saffron.opacity(0.8)
+        }
+
+        return task.isCompleted ? .white : DharmaTheme.Colors.saffron.opacity(0.8)
+    }
     
     var body: some View {
         Button(action: onTap) {
@@ -28,23 +59,13 @@ struct DailyTaskCard: View {
                 }
                 
                 // Done Button/Badge
-                if task.isCompleted {
-                    Text("DONE")
-                        .font(DharmaTheme.Typography.uiLabel(12))
-                        .foregroundColor(DharmaTheme.Colors.onSurface)
-                        .padding(.horizontal, DharmaTheme.Spacing.xl)
-                        .padding(.vertical, DharmaTheme.Spacing.sm)
-                        .background(Color.white)
-                        .cornerRadius(DharmaTheme.Radius.xl)
-                } else {
-                    Text("START")
-                        .font(DharmaTheme.Typography.uiLabel(12))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, DharmaTheme.Spacing.xl)
-                        .padding(.vertical, DharmaTheme.Spacing.sm)
-                        .background(DharmaTheme.Colors.saffron.opacity(0.8))
-                        .cornerRadius(DharmaTheme.Radius.xl)
-                }
+                Text(statusTitle)
+                    .font(DharmaTheme.Typography.uiLabel(12))
+                    .foregroundColor(statusForegroundColor)
+                    .padding(.horizontal, DharmaTheme.Spacing.xl)
+                    .padding(.vertical, DharmaTheme.Spacing.sm)
+                    .background(statusBackgroundColor)
+                    .cornerRadius(DharmaTheme.Radius.xl)
                 
                 Spacer()
             }

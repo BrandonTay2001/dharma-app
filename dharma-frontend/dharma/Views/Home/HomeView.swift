@@ -11,6 +11,7 @@ struct HomeView: View {
     @State private var showingMantra = false
     @State private var showingJournal = false
     @State private var showingSettings = false
+    @State private var showingSacredDates = false
     @State private var selectedVerseType: DailyTask.TaskType = .hinduVerse
     
     var body: some View {
@@ -68,6 +69,12 @@ struct HomeView: View {
             SettingsView()
                 .presentationDetents([.height(430)])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingSacredDates) {
+            SacredObservanceCalendarView(observances: viewModel.upcomingSacredDates, onDone: {
+                markTaskDone(.sacredDates)
+                showingSacredDates = false
+            })
         }
         .task {
             await viewModel.refreshForCurrentContext()
@@ -172,7 +179,7 @@ struct HomeView: View {
             }
         }
     }
-    
+
     // MARK: - Actions
     private func handleTaskTap(_ task: DailyTask) {
         switch task.taskType {
@@ -187,6 +194,8 @@ struct HomeView: View {
             showingMantra = true
         case .journal, .gratitude:
             showingJournal = true
+        case .sacredDates:
+            showingSacredDates = true
         }
     }
     

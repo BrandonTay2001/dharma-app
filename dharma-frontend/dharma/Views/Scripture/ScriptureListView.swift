@@ -31,8 +31,9 @@ struct ScriptureListView: View {
                         ForEach(viewModel.scriptures) { scripture in
                             NavigationLink {
                                 ScriptureReaderView(viewModel: viewModel)
-                                    .onAppear {
+                                    .task {
                                         viewModel.selectScripture(scripture)
+                                        await viewModel.loadVerses(for: scripture.title)
                                     }
                             } label: {
                                 scriptureCard(scripture)

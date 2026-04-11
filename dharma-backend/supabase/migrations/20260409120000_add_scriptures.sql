@@ -34,3 +34,6 @@ create policy "Only service role can delete scriptures."
   on public.scriptures
   for delete
   using (auth.role() = 'service_role');
+
+ALTER TABLE public.scriptures 
+DROP CONSTRAINT scriptures_tradition_check;

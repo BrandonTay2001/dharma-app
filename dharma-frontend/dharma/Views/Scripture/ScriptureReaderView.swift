@@ -7,7 +7,17 @@ struct ScriptureReaderView: View {
     
     var body: some View {
         ScrollView(showsIndicators: false) {
-            if let chapter = viewModel.selectedChapter {
+            if viewModel.isLoadingVerses && (viewModel.selectedChapter?.verses.isEmpty ?? true) {
+                VStack(spacing: DharmaTheme.Spacing.md) {
+                    ProgressView()
+                        .tint(DharmaTheme.Colors.saffron)
+                    Text("Loading verses...")
+                        .font(DharmaTheme.Typography.uiBody(14))
+                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DharmaTheme.Spacing.xxxl)
+            } else if let chapter = viewModel.selectedChapter {
                 VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xxxl) {
                     ForEach(chapter.verses) { verse in
                         verseRow(verse)

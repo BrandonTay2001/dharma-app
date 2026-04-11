@@ -10,9 +10,11 @@ final class ScriptureViewModel {
     var selectedScripture: Scripture?
     var selectedChapterIndex: Int = 0
     var isLoading = false
+    var isLoadingVerses = false
     var errorMessage: String?
 
     private var hasLoaded = false
+    private var loadedScriptureTitles: Set<String> = []
     
     var selectedChapter: Chapter? {
         guard let scripture = selectedScripture else { return nil }
@@ -20,6 +22,7 @@ final class ScriptureViewModel {
         return scripture.chapters[selectedChapterIndex]
     }
 
+    /// Load scripture metadata only (titles, traditions, chapter names — no verses)
     func loadScriptures(forceReload: Bool = false) async {
         guard !isLoading else { return }
         guard forceReload || !hasLoaded else { return }
@@ -28,15 +31,6 @@ final class ScriptureViewModel {
         errorMessage = nil
 
         do {
-            async let scriptureRows: [ScriptureRecord] = supabase
-                .from("scriptures")
-                .select("title, tradition, chapter_number, verse_number, text, traditional_text")
-                .order("title", ascending: true)
-                .order("chapter_number", ascending: true)
-                .order("verse_number", ascending: true)
-                .execute()
-                .value
-
             async let chapterTitleRows: [ChapterTitleRecord] = supabase
                 .from("chapter_titles")
                 .select("scripture_title, chapter_number, chapter_title")
@@ -45,12 +39,20 @@ final class ScriptureViewModel {
                 .execute()
                 .value
 
-            let loadedScriptures = try await buildScriptures(
-                from: scriptureRows,
-                chapterTitles: chapterTitleRows
+            async let metaRows: [ScriptureMetaRecord] = supabase
+                .from("scriptures")
+                .select("title, tradition")
+                .order("title", ascending: true)
+                .execute()
+                .value
+
+            let loaded = try await buildScriptureList(
+                chapterTitles: chapterTitleRows,
+                meta: metaRows
             )
 
-            scriptures = loadedScriptures
+            scriptures = loaded
+            if forceReload { loadedScriptureTitles.removeAll() }
             syncSelection()
             hasLoaded = true
         } catch {
@@ -67,6 +69,34 @@ final class ScriptureViewModel {
     func selectScripture(_ scripture: Scripture) {
         selectedScripture = scripture
         selectedChapterIndex = 0
+    }
+
+    /// Load all verses for a specific scripture on demand
+    func loadVerses(for scriptureTitle: String) async {
+        guard !isLoadingVerses else { return }
+        guard !loadedScriptureTitles.contains(scriptureTitle) else { return }
+
+        isLoadingVerses = true
+
+        do {
+            let verseRows: [ScriptureVerseRecord] = try await supabase
+                .from("scriptures")
+                .select("title, tradition, chapter_number, verse_number, text, traditional_text")
+                .eq("title", value: scriptureTitle)
+                .order("chapter_number", ascending: true)
+                .order("verse_number", ascending: true)
+                .limit(10000)
+                .execute()
+                .value
+
+            populateVerses(for: scriptureTitle, from: verseRows)
+            loadedScriptureTitles.insert(scriptureTitle)
+        } catch {
+            print("Verse load error for \(scriptureTitle): \(error)")
+            errorMessage = "Could not load verses. Please try again."
+        }
+
+        isLoadingVerses = false
     }
     
     func nextChapter() {
@@ -86,47 +116,53 @@ final class ScriptureViewModel {
         selectedChapterIndex = index
     }
 
-    private func buildScriptures(
-        from records: [ScriptureRecord],
-        chapterTitles: [ChapterTitleRecord]
+    private func buildScriptureList(
+        chapterTitles: [ChapterTitleRecord],
+        meta: [ScriptureMetaRecord]
     ) -> [Scripture] {
-        let chapterTitleLookup = Dictionary(
-            uniqueKeysWithValues: chapterTitles.map {
-                (ChapterTitleKey(scriptureTitle: $0.scriptureTitle, chapterNumber: $0.chapterNumber), $0.chapterTitle)
-            }
+        let traditionLookup = Dictionary(
+            meta.map { ($0.title, $0.tradition) },
+            uniquingKeysWith: { first, _ in first }
         )
 
-        let groupedByTitle = Dictionary(grouping: records, by: \.title)
+        let groupedChapters = Dictionary(grouping: chapterTitles, by: \.scriptureTitle)
 
-        return groupedByTitle.keys.sorted().compactMap { title in
-            guard let scriptureRecords = groupedByTitle[title],
-                  let tradition = scriptureRecords.first?.tradition else {
-                return nil
-            }
+        return groupedChapters.keys.sorted().compactMap { scriptureTitle in
+            guard let tradition = traditionLookup[scriptureTitle] else { return nil }
 
-            let groupedByChapter = Dictionary(grouping: scriptureRecords, by: \.chapterNumber)
-            let chapters = groupedByChapter.keys.sorted().map { chapterNumber in
-                let verses = groupedByChapter[chapterNumber, default: []]
-                    .sorted { $0.verseNumber < $1.verseNumber }
-                    .map {
-                        Verse(
-                            number: $0.verseNumber,
-                            speaker: nil,
-                            text: $0.text,
-                            traditionalText: $0.traditionalText
-                        )
-                    }
+            let chapters = (groupedChapters[scriptureTitle] ?? [])
+                .sorted { $0.chapterNumber < $1.chapterNumber }
+                .map { Chapter(number: $0.chapterNumber, title: $0.chapterTitle, verses: []) }
 
-                return Chapter(
-                    number: chapterNumber,
-                    title: chapterTitleLookup[
-                        ChapterTitleKey(scriptureTitle: title, chapterNumber: chapterNumber)
-                    ] ?? "Chapter \(chapterNumber)",
-                    verses: verses
-                )
-            }
+            return Scripture(title: scriptureTitle, tradition: tradition, chapters: chapters)
+        }
+    }
 
-            return Scripture(title: title, tradition: tradition, chapters: chapters)
+    private func populateVerses(for scriptureTitle: String, from records: [ScriptureVerseRecord]) {
+        guard let idx = scriptures.firstIndex(where: { $0.title == scriptureTitle }) else { return }
+
+        let groupedByChapter = Dictionary(grouping: records, by: \.chapterNumber)
+        let existing = scriptures[idx]
+
+        let updatedChapters = existing.chapters.map { chapter in
+            let verses = (groupedByChapter[chapter.number] ?? [])
+                .sorted { $0.verseNumber < $1.verseNumber }
+                .map {
+                    Verse(
+                        number: $0.verseNumber,
+                        speaker: nil,
+                        text: $0.text,
+                        traditionalText: $0.traditionalText
+                    )
+                }
+            return Chapter(number: chapter.number, title: chapter.title, verses: verses)
+        }
+
+        let updated = Scripture(title: existing.title, tradition: existing.tradition, chapters: updatedChapters)
+        scriptures[idx] = updated
+
+        if selectedScripture?.title == scriptureTitle {
+            selectedScripture = updated
         }
     }
 
@@ -153,24 +189,6 @@ final class ScriptureViewModel {
     }
 }
 
-private struct ScriptureRecord: Decodable {
-    let title: String
-    let tradition: String
-    let chapterNumber: Int
-    let verseNumber: Int
-    let text: String
-    let traditionalText: String?
-
-    enum CodingKeys: String, CodingKey {
-        case title
-        case tradition
-        case chapterNumber = "chapter_number"
-        case verseNumber = "verse_number"
-        case text
-        case traditionalText = "traditional_text"
-    }
-}
-
 private struct ChapterTitleRecord: Decodable {
     let scriptureTitle: String
     let chapterNumber: Int
@@ -183,7 +201,23 @@ private struct ChapterTitleRecord: Decodable {
     }
 }
 
-private struct ChapterTitleKey: Hashable {
-    let scriptureTitle: String
+private struct ScriptureMetaRecord: Decodable {
+    let title: String
+    let tradition: String
+}
+
+private struct ScriptureVerseRecord: Decodable {
+    let title: String
+    let tradition: String
     let chapterNumber: Int
+    let verseNumber: Int
+    let text: String
+    let traditionalText: String?
+
+    enum CodingKeys: String, CodingKey {
+        case title, tradition, text
+        case chapterNumber = "chapter_number"
+        case verseNumber = "verse_number"
+        case traditionalText = "traditional_text"
+    }
 }

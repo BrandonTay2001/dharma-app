@@ -70,7 +70,7 @@ final class OnboardingViewModel {
         case spiritualMeditative
         case exploring
 
-        var id: String { rawValue }x
+        var id: String { rawValue }
 
         var title: String {
             switch self {

@@ -18,25 +18,60 @@ struct ScriptureListView: View {
                             .foregroundColor(DharmaTheme.Colors.secondaryText)
                     }
                     .padding(.top, DharmaTheme.Spacing.xl)
-                    
-                    // Scripture Cards
-                    ForEach(viewModel.scriptures) { scripture in
-                        NavigationLink {
-                            ScriptureReaderView(viewModel: viewModel)
-                                .onAppear {
-                                    viewModel.selectScripture(scripture)
-                                }
-                        } label: {
-                            scriptureCard(scripture)
+
+                    if viewModel.isLoading && viewModel.scriptures.isEmpty {
+                        loadingState
+                    } else if let errorMessage = viewModel.errorMessage, viewModel.scriptures.isEmpty {
+                        errorState(message: errorMessage)
+                    } else {
+                        if let errorMessage = viewModel.errorMessage {
+                            inlineError(message: errorMessage)
                         }
-                        .buttonStyle(.plain)
+
+                        ForEach(viewModel.scriptures) { scripture in
+                            NavigationLink {
+                                ScriptureReaderView(viewModel: viewModel)
+                                    .onAppear {
+                                        viewModel.selectScripture(scripture)
+                                    }
+                            } label: {
+                                scriptureCard(scripture)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if viewModel.scriptures.isEmpty {
+                            Text("No sacred texts are available yet")
+                                .font(DharmaTheme.Typography.uiBody(14))
+                                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                                .padding(.top, DharmaTheme.Spacing.xl)
+                        }
                     }
                 }
                 .padding(.horizontal, DharmaTheme.Spacing.lg)
                 .padding(.bottom, DharmaTheme.Spacing.xxxl)
             }
             .background(Color.white)
+            .task {
+                await viewModel.loadScriptures()
+            }
+            .refreshable {
+                await viewModel.loadScriptures(forceReload: true)
+            }
         }
+    }
+
+    private var loadingState: some View {
+        VStack(spacing: DharmaTheme.Spacing.md) {
+            ProgressView()
+                .tint(DharmaTheme.Colors.saffron)
+
+            Text("Loading sacred texts...")
+                .font(DharmaTheme.Typography.uiBody(14))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DharmaTheme.Spacing.xxxl)
     }
     
     private func scriptureCard(_ scripture: Scripture) -> some View {
@@ -71,8 +106,47 @@ struct ScriptureListView: View {
         .background(DharmaTheme.Colors.surface)
         .cornerRadius(DharmaTheme.Radius.lg)
     }
+
+    private func errorState(message: String) -> some View {
+        VStack(spacing: DharmaTheme.Spacing.md) {
+            Text("We couldn’t load the scriptures")
+                .font(DharmaTheme.Typography.uiHeadline(18))
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+
+            Text(message)
+                .font(DharmaTheme.Typography.uiBody(14))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                .multilineTextAlignment(.center)
+
+            Button("Try Again") {
+                Task {
+                    await viewModel.loadScriptures(forceReload: true)
+                }
+            }
+            .buttonStyle(.saffron)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(DharmaTheme.Spacing.xl)
+        .background(DharmaTheme.Colors.surfaceContainerLow)
+        .cornerRadius(DharmaTheme.Radius.lg)
+    }
+
+    private func inlineError(message: String) -> some View {
+        Text(message)
+            .font(DharmaTheme.Typography.uiCaption())
+            .foregroundColor(DharmaTheme.Colors.saffronDark)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, DharmaTheme.Spacing.lg)
+            .padding(.vertical, DharmaTheme.Spacing.md)
+            .background(DharmaTheme.Colors.surfaceContainerLow)
+            .cornerRadius(DharmaTheme.Radius.md)
+    }
 }
 
 #Preview {
-    ScriptureListView(viewModel: ScriptureViewModel())
+    ScriptureListView(viewModel: {
+        let viewModel = ScriptureViewModel()
+        viewModel.scriptures = Scripture.allScriptures
+        return viewModel
+    }())
 }

@@ -3,27 +3,20 @@ import SwiftUI
 struct ScriptureReaderView: View {
     @Bindable var viewModel: ScriptureViewModel
     @State private var showChapterPicker = false
-    @State private var audioPlaying = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Verse content
-            ScrollView(showsIndicators: false) {
-                if let chapter = viewModel.selectedChapter {
-                    VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xxxl) {
-                        ForEach(chapter.verses) { verse in
-                            verseRow(verse)
-                        }
+        ScrollView(showsIndicators: false) {
+            if let chapter = viewModel.selectedChapter {
+                VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xxxl) {
+                    ForEach(chapter.verses) { verse in
+                        verseRow(verse)
                     }
-                    .padding(.horizontal, DharmaTheme.Spacing.xl)
-                    .padding(.top, DharmaTheme.Spacing.xxl)
-                    .padding(.bottom, 100) // Space for audio bar
                 }
+                .padding(.horizontal, DharmaTheme.Spacing.xl)
+                .padding(.top, DharmaTheme.Spacing.xxl)
+                .padding(.bottom, DharmaTheme.Spacing.xxxl)
             }
-            
-            // Bottom audio bar (glassmorphism)
-            audioBar
         }
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
@@ -60,16 +53,6 @@ struct ScriptureReaderView: View {
                     .cornerRadius(DharmaTheme.Radius.xl)
                 }
             }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    // Settings placeholder
-                } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 16))
-                        .foregroundColor(DharmaTheme.Colors.secondaryText)
-                }
-            }
         }
         .sheet(isPresented: $showChapterPicker) {
             chapterPickerSheet
@@ -84,7 +67,9 @@ struct ScriptureReaderView: View {
                 Text("\(verse.number).")
                     .font(DharmaTheme.Typography.scriptureBody(20))
                     .foregroundColor(DharmaTheme.Colors.saffron)
-                    .frame(width: 30, alignment: .leading)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(minWidth: 44, alignment: .leading)
                 
                 VStack(alignment: .leading, spacing: DharmaTheme.Spacing.xs) {
                     // Speaker attribution
@@ -94,6 +79,14 @@ struct ScriptureReaderView: View {
                             .foregroundColor(DharmaTheme.Colors.onSurface)
                             .fontWeight(.semibold)
                     }
+
+                            if let traditionalText = verse.traditionalText,
+                               !traditionalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(traditionalText)
+                                .font(DharmaTheme.Typography.scriptureBody(22))
+                                .foregroundColor(DharmaTheme.Colors.saffronDark)
+                                .lineSpacing(8)
+                            }
                     
                     // Verse text
                     Text(verse.text)
@@ -103,56 +96,6 @@ struct ScriptureReaderView: View {
                 }
             }
         }
-    }
-    
-    // MARK: - Audio Bar
-    private var audioBar: some View {
-        HStack(spacing: DharmaTheme.Spacing.lg) {
-            Button {
-                audioPlaying.toggle()
-            } label: {
-                Image(systemName: audioPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(DharmaTheme.Colors.saffron)
-            }
-            
-            // Progress slider
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(DharmaTheme.Colors.surfaceContainerLow)
-                        .frame(height: 3)
-                    
-                    Capsule()
-                        .fill(DharmaTheme.Colors.saffron)
-                        .frame(width: geometry.size.width * 0.15, height: 3)
-                    
-                    Circle()
-                        .fill(DharmaTheme.Colors.saffron)
-                        .frame(width: 10, height: 10)
-                        .offset(x: geometry.size.width * 0.15 - 5)
-                }
-            }
-            .frame(height: 10)
-            
-            Button {
-                // Volume toggle
-            } label: {
-                Image(systemName: "speaker.wave.2.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(DharmaTheme.Colors.secondaryText)
-            }
-        }
-        .padding(.horizontal, DharmaTheme.Spacing.xl)
-        .padding(.vertical, DharmaTheme.Spacing.lg)
-        .background(
-            Color.white.opacity(0.9)
-                .background(.ultraThinMaterial)
-        )
-        .cornerRadius(DharmaTheme.Radius.xl)
-        .shadow(color: .black.opacity(0.04), radius: 16, x: 0, y: -4)
-        .padding(.horizontal, DharmaTheme.Spacing.md)
-        .padding(.bottom, DharmaTheme.Spacing.sm)
     }
     
     // MARK: - Chapter Picker

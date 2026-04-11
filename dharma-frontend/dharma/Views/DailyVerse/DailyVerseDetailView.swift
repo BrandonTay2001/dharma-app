@@ -2,54 +2,28 @@ import SwiftUI
 import UIKit
 
 struct DailyVerseDetailView: View {
+    @Bindable var viewModel: DailyVerseViewModel
     let onDone: () -> Void
-    let onChatToLearnMore: (DailyTask.TaskType) -> Void
+    let onChatToLearnMore: (DailyVerse) -> Void
     @State private var showReflection = false
-    @State private var selectedVerseType: DailyTask.TaskType
-    @State private var viewModel: DailyVerseReflectionViewModel
+    @State private var reflectionViewModel = DailyVerseReflectionViewModel(verseType: .hinduVerse)
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
-    init(verseType: DailyTask.TaskType, onDone: @escaping () -> Void, onChatToLearnMore: @escaping (DailyTask.TaskType) -> Void) {
+    init(viewModel: DailyVerseViewModel, onDone: @escaping () -> Void, onChatToLearnMore: @escaping (DailyVerse) -> Void) {
+        self.viewModel = viewModel
         self.onDone = onDone
         self.onChatToLearnMore = onChatToLearnMore
-
-        let viewModel = DailyVerseReflectionViewModel(verseType: verseType)
-        _selectedVerseType = State(initialValue: verseType)
-        _viewModel = State(initialValue: viewModel)
-        _showReflection = State(initialValue: viewModel.hasReflection)
     }
     
     var body: some View {
-        @Bindable var viewModel = viewModel
+        @Bindable var reflectionViewModel = reflectionViewModel
 
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: DharmaTheme.Spacing.xxl) {
-                        // Verse Card
-                        VStack(spacing: DharmaTheme.Spacing.xl) {
-                            Text(selectedVerseType.verseIcon)
-                                .font(.system(size: 48))
-                                .padding(.top, DharmaTheme.Spacing.xxl)
-                            
-                            Text(selectedVerseType.verseTitle)
-                                .font(DharmaTheme.Typography.uiLabel(13))
-                                .foregroundColor(DharmaTheme.Colors.saffron)
-                                .tracking(1.5)
-                            
-                            Text(selectedVerseType.verseText)
-                                .font(DharmaTheme.Typography.scriptureBody(20))
-                                .foregroundColor(DharmaTheme.Colors.onSurface)
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(8)
-                                .padding(.horizontal, DharmaTheme.Spacing.lg)
-                                .padding(.bottom, DharmaTheme.Spacing.xxl)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .background(DharmaTheme.Colors.surface)
-                        .cornerRadius(DharmaTheme.Radius.lg)
-                        .padding(.horizontal, DharmaTheme.Spacing.sm)
+                        verseCardSection
                         
                         // Reflection area
                         if showReflection {
@@ -58,7 +32,7 @@ struct DailyVerseDetailView: View {
                                     .font(DharmaTheme.Typography.uiHeadline(16))
                                     .foregroundColor(DharmaTheme.Colors.onSurface)
                                 
-                                TextEditor(text: $viewModel.reflectionText)
+                                TextEditor(text: $reflectionViewModel.reflectionText)
                                     .font(DharmaTheme.Typography.uiBody())
                                     .foregroundColor(DharmaTheme.Colors.onSurface)
                                     .tint(DharmaTheme.Colors.saffron)
@@ -69,13 +43,13 @@ struct DailyVerseDetailView: View {
                                     .scrollContentBackground(.hidden)
 
                                 HStack {
-                                    Text(viewModel.storageHint)
+                                    Text(reflectionViewModel.storageHint)
                                         .font(DharmaTheme.Typography.uiCaption(11))
                                         .foregroundColor(DharmaTheme.Colors.secondaryText)
 
                                     Spacer()
 
-                                    Text("\(viewModel.characterCount) characters")
+                                    Text("\(reflectionViewModel.characterCount) characters")
                                         .font(DharmaTheme.Typography.uiCaption(11))
                                         .foregroundColor(DharmaTheme.Colors.secondaryText)
                                 }
@@ -97,14 +71,15 @@ struct DailyVerseDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "pencil.circle")
                                 .font(.system(size: 16))
-                            Text(viewModel.hasReflection ? "Edit reflection" : "Reflection")
+                            Text(reflectionViewModel.hasReflection ? "Edit reflection" : "Reflection")
                                 .font(DharmaTheme.Typography.uiCaption())
                         }
                     }
                     .buttonStyle(.ghost)
                     
                     Button {
-                        onChatToLearnMore(selectedVerseType)
+                        guard let verse = viewModel.verse else { return }
+                        onChatToLearnMore(verse)
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "bubble.left.fill")
@@ -114,6 +89,7 @@ struct DailyVerseDetailView: View {
                         }
                     }
                     .buttonStyle(.ghost)
+                    .disabled(viewModel.verse == nil)
                     
                     Spacer()
                     
@@ -135,20 +111,22 @@ struct DailyVerseDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
-                        ForEach(DailyTask.TaskType.selectableVerseTypes, id: \.self) { verseType in
+                        ForEach(DailyVerseViewModel.TraditionFilter.allCases) { tradition in
                             Button {
-                                selectVerseType(verseType)
+                                Task {
+                                    await selectTradition(tradition)
+                                }
                             } label: {
-                                if verseType == selectedVerseType {
-                                    Label(verseType.versePickerTitle, systemImage: "checkmark")
+                                if tradition == viewModel.selectedTradition {
+                                    Label(tradition.title, systemImage: "checkmark")
                                 } else {
-                                    Text(verseType.versePickerTitle)
+                                    Text(tradition.title)
                                 }
                             }
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Text(selectedVerseType.versePickerTitle)
+                            Text(viewModel.selectedTradition.title)
                                 .font(DharmaTheme.Typography.uiCaption())
                             Image(systemName: "chevron.down")
                                 .font(.system(size: 12, weight: .semibold))
@@ -170,28 +148,164 @@ struct DailyVerseDetailView: View {
                 }
             }
         }
+        .task {
+            await viewModel.loadVerse()
+            reflectionViewModel.selectVerseType(viewModel.selectedTradition.taskType)
+            showReflection = reflectionViewModel.hasReflection
+        }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
-            reloadReflection()
+
+            Task {
+                await viewModel.loadVerse()
+                reloadReflection()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-            reloadReflection()
+            Task {
+                await viewModel.loadVerse(forceReload: true)
+                reloadReflection()
+            }
         }
     }
 
-    private func selectVerseType(_ verseType: DailyTask.TaskType) {
+    private func selectTradition(_ tradition: DailyVerseViewModel.TraditionFilter) async {
         let wasShowingReflection = showReflection
-        selectedVerseType = verseType
-        viewModel.selectVerseType(verseType)
-        showReflection = wasShowingReflection || viewModel.hasReflection
+        await viewModel.selectTradition(tradition)
+        reflectionViewModel.selectVerseType(tradition.taskType)
+        showReflection = wasShowingReflection || reflectionViewModel.hasReflection
+    }
+
+    @ViewBuilder
+    private var verseCardSection: some View {
+        if viewModel.isLoading && viewModel.verse == nil {
+            VStack(spacing: DharmaTheme.Spacing.lg) {
+                ProgressView()
+                    .tint(DharmaTheme.Colors.saffron)
+
+                Text("Selecting today’s verse...")
+                    .font(DharmaTheme.Typography.uiBody())
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DharmaTheme.Spacing.xxxl)
+            .background(DharmaTheme.Colors.surface)
+            .cornerRadius(DharmaTheme.Radius.lg)
+            .padding(.horizontal, DharmaTheme.Spacing.sm)
+        } else if let verse = viewModel.verse {
+            VStack(spacing: DharmaTheme.Spacing.md) {
+                Button {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.86)) {
+                        viewModel.toggleCardFace()
+                    }
+                } label: {
+                    ZStack {
+                        verseCardFace(
+                            verse: verse,
+                            title: "ENGLISH",
+                            bodyText: verse.englishText,
+                            hint: "Tap to reveal the traditional text"
+                        )
+                        .opacity(viewModel.isShowingTraditionalText ? 0 : 1)
+
+                        verseCardFace(
+                            verse: verse,
+                            title: "TRADITIONAL",
+                            bodyText: verse.displayedTraditionalText,
+                            hint: verse.hasTraditionalText ? "Tap to return to the English translation" : "Traditional text unavailable for this verse"
+                        )
+                        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                        .opacity(viewModel.isShowingTraditionalText ? 1 : 0)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 420)
+                    .rotation3DEffect(
+                        .degrees(viewModel.isShowingTraditionalText ? 180 : 0),
+                        axis: (x: 0, y: 1, z: 0)
+                    )
+                }
+                .buttonStyle(.plain)
+
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(DharmaTheme.Typography.uiCaption())
+                        .foregroundColor(DharmaTheme.Colors.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, DharmaTheme.Spacing.lg)
+                }
+            }
+            .padding(.horizontal, DharmaTheme.Spacing.sm)
+        } else {
+            VStack(spacing: DharmaTheme.Spacing.md) {
+                Text(viewModel.errorMessage ?? "No daily verse is available right now.")
+                    .font(DharmaTheme.Typography.uiBody())
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Again") {
+                    Task {
+                        await viewModel.loadVerse(forceReload: true)
+                    }
+                }
+                .buttonStyle(.saffron)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DharmaTheme.Spacing.xxxl)
+            .padding(.horizontal, DharmaTheme.Spacing.lg)
+            .background(DharmaTheme.Colors.surface)
+            .cornerRadius(DharmaTheme.Radius.lg)
+            .padding(.horizontal, DharmaTheme.Spacing.sm)
+        }
     }
 
     private func reloadReflection() {
-        viewModel.loadReflection()
-        showReflection = showReflection || viewModel.hasReflection
+        reflectionViewModel.loadReflection()
+        showReflection = showReflection || reflectionViewModel.hasReflection
+    }
+
+    private func verseCardFace(verse: DailyVerse, title: String, bodyText: String, hint: String) -> some View {
+        VStack(spacing: DharmaTheme.Spacing.lg) {
+            Text(verse.traditionIcon)
+                .font(.system(size: 46))
+                .padding(.top, DharmaTheme.Spacing.xxl)
+
+            VStack(spacing: DharmaTheme.Spacing.sm) {
+                Text(title)
+                    .font(DharmaTheme.Typography.uiLabel(13))
+                    .foregroundColor(DharmaTheme.Colors.saffron)
+                    .tracking(1.5)
+
+                Text(verse.traditionLabel)
+                    .font(DharmaTheme.Typography.uiCaption(12))
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+
+            Text(bodyText)
+                .font(DharmaTheme.Typography.scriptureBody(20))
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+                .multilineTextAlignment(.center)
+                .lineSpacing(8)
+                .padding(.horizontal, DharmaTheme.Spacing.lg)
+
+            Spacer(minLength: DharmaTheme.Spacing.md)
+
+            VStack(spacing: DharmaTheme.Spacing.xs) {
+                Text(verse.referenceText)
+                    .font(DharmaTheme.Typography.uiHeadline(15))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+
+                Text(hint)
+                    .font(DharmaTheme.Typography.uiCaption())
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+            .padding(.bottom, DharmaTheme.Spacing.xxl)
+        }
+        .frame(maxWidth: .infinity, minHeight: 420)
+        .background(DharmaTheme.Colors.surface)
+        .cornerRadius(DharmaTheme.Radius.lg)
     }
 }
 
 #Preview {
-    DailyVerseDetailView(verseType: .hinduVerse, onDone: {}, onChatToLearnMore: { _ in })
+    DailyVerseDetailView(viewModel: DailyVerseViewModel(), onDone: {}, onChatToLearnMore: { _ in })
 }

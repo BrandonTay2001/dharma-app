@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var scriptureViewModel = ScriptureViewModel()
     @State private var chatViewModel = ChatViewModel()
     @State private var learnViewModel = LearnViewModel()
+    @State private var dailyVerseViewModel = DailyVerseViewModel()
     
     enum Tab: String {
         case chat = "Chat"
@@ -37,6 +38,7 @@ struct ContentView: View {
                 
                 HomeView(
                     viewModel: homeViewModel,
+                    dailyVerseViewModel: dailyVerseViewModel,
                     openVerseExplanationChat: openVerseExplanationChat
                 )
                     .tabItem {
@@ -61,9 +63,9 @@ struct ContentView: View {
         .tint(DharmaTheme.Colors.saffron)
     }
 
-    private func openVerseExplanationChat(for verseType: DailyTask.TaskType) {
+    private func openVerseExplanationChat(for verse: DailyVerse) {
         chatViewModel.sendPrefilledMessage(
-            verseType.verseExplanationPrompt,
+            verse.explanationPrompt,
             resetConversation: true
         )
         selectedTab = .chat

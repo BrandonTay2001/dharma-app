@@ -3,7 +3,8 @@ import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
-    let openVerseExplanationChat: (DailyTask.TaskType) -> Void
+    @Bindable var dailyVerseViewModel: DailyVerseViewModel
+    let openVerseExplanationChat: (DailyVerse) -> Void
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(\.scenePhase) private var scenePhase
     @State private var showingVerseDetail = false
@@ -12,7 +13,6 @@ struct HomeView: View {
     @State private var showingJournal = false
     @State private var showingSettings = false
     @State private var showingSacredDates = false
-    @State private var selectedVerseType: DailyTask.TaskType = .hinduVerse
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -35,15 +35,14 @@ struct HomeView: View {
         .background(Color.white)
         .sheet(isPresented: $showingVerseDetail) {
             DailyVerseDetailView(
-                verseType: selectedVerseType,
+                viewModel: dailyVerseViewModel,
                 onDone: {
                     markTaskDone(.dailyVerse)
                     showingVerseDetail = false
                 },
-                onChatToLearnMore: { verseType in
-                    selectedVerseType = verseType
+                onChatToLearnMore: { verse in
                     showingVerseDetail = false
-                    openVerseExplanationChat(verseType)
+                    openVerseExplanationChat(verse)
                 }
             )
         }
@@ -186,7 +185,6 @@ struct HomeView: View {
         case .dailyVerse:
             showingVerseDetail = true
         case .hinduVerse, .buddhistVerse:
-            selectedVerseType = task.taskType
             showingVerseDetail = true
         case .meditation:
             showingMeditation = true
@@ -210,6 +208,6 @@ struct HomeView: View {
     let authViewModel = AuthViewModel()
     authViewModel.currentUserEmail = "seeker@dharma.app"
 
-    return HomeView(viewModel: HomeViewModel(), openVerseExplanationChat: { _ in })
+    return HomeView(viewModel: HomeViewModel(), dailyVerseViewModel: DailyVerseViewModel(), openVerseExplanationChat: { _ in })
         .environment(authViewModel)
 }

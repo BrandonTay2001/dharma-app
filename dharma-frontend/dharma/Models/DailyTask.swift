@@ -114,7 +114,7 @@ extension DailyTask {
     static let sampleTasks: [DailyTask] = [
         DailyTask(
             title: "DAILY VERSE",
-            subtitle: "Hindu or Buddhist",
+            subtitle: "A new sacred passage",
             duration: "1 MIN",
             icon: "📖",
             color: DharmaTheme.Colors.cardHindu,

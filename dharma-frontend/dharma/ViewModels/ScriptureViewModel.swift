@@ -29,6 +29,7 @@ final class ScriptureViewModel {
 
         isLoading = true
         errorMessage = nil
+        defer { isLoading = false }
 
         do {
             async let chapterTitleRows: [ChapterTitleRecord] = supabase
@@ -40,7 +41,7 @@ final class ScriptureViewModel {
                 .value
 
             async let metaRows: [ScriptureMetaRecord] = supabase
-                .from("scriptures")
+                .from("scripture_meta")
                 .select("title, tradition")
                 .order("title", ascending: true)
                 .execute()
@@ -51,10 +52,13 @@ final class ScriptureViewModel {
                 meta: metaRows
             )
 
+            print("Scriptures loaded: \(loaded.map { "\($0.title) (\($0.chapters.count) chapters)" })")
             scriptures = loaded
             if forceReload { loadedScriptureTitles.removeAll() }
             syncSelection()
             hasLoaded = true
+        } catch is CancellationError {
+            return
         } catch {
             print("Scripture load error: \(error)")
             if scriptures.isEmpty {
@@ -62,8 +66,6 @@ final class ScriptureViewModel {
             }
             errorMessage = "Could not load sacred texts right now. Please try again."
         }
-
-        isLoading = false
     }
     
     func selectScripture(_ scripture: Scripture) {
@@ -77,6 +79,7 @@ final class ScriptureViewModel {
         guard !loadedScriptureTitles.contains(scriptureTitle) else { return }
 
         isLoadingVerses = true
+        defer { isLoadingVerses = false }
 
         do {
             let verseRows: [ScriptureVerseRecord] = try await supabase
@@ -91,12 +94,12 @@ final class ScriptureViewModel {
 
             populateVerses(for: scriptureTitle, from: verseRows)
             loadedScriptureTitles.insert(scriptureTitle)
+        } catch is CancellationError {
+            return
         } catch {
             print("Verse load error for \(scriptureTitle): \(error)")
             errorMessage = "Could not load verses. Please try again."
         }
-
-        isLoadingVerses = false
     }
     
     func nextChapter() {
@@ -120,6 +123,10 @@ final class ScriptureViewModel {
         chapterTitles: [ChapterTitleRecord],
         meta: [ScriptureMetaRecord]
     ) -> [Scripture] {
+        print("buildScriptureList — meta rows: \(meta.count), chapter_title rows: \(chapterTitles.count)")
+        print("  meta titles: \(Set(meta.map(\.title)).sorted())")
+        print("  chapter_titles scripture_titles: \(Set(chapterTitles.map(\.scriptureTitle)).sorted())")
+
         let traditionLookup = Dictionary(
             meta.map { ($0.title, $0.tradition) },
             uniquingKeysWith: { first, _ in first }
@@ -128,7 +135,10 @@ final class ScriptureViewModel {
         let groupedChapters = Dictionary(grouping: chapterTitles, by: \.scriptureTitle)
 
         return groupedChapters.keys.sorted().compactMap { scriptureTitle in
-            guard let tradition = traditionLookup[scriptureTitle] else { return nil }
+            guard let tradition = traditionLookup[scriptureTitle] else {
+                print("  ⚠️ No tradition found for '\(scriptureTitle)' — skipping")
+                return nil
+            }
 
             let chapters = (groupedChapters[scriptureTitle] ?? [])
                 .sorted { $0.chapterNumber < $1.chapterNumber }

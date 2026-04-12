@@ -38,6 +38,28 @@ struct SacredObservance: Identifiable, Equatable, Hashable {
     let ritualSteps: [String]
     let whyItMatters: String
     let isMajorObservance: Bool
+    
+    init(
+        id: String,
+        date: Date,
+        title: String,
+        tradition: Tradition,
+        summary: String,
+        suggestedPractice: String,
+        ritualSteps: [String],
+        whyItMatters: String,
+        isMajorObservance: Bool
+    ) {
+        self.id = id
+        self.date = date
+        self.title = title
+        self.tradition = tradition
+        self.summary = summary
+        self.suggestedPractice = suggestedPractice
+        self.ritualSteps = ritualSteps
+        self.whyItMatters = whyItMatters
+        self.isMajorObservance = isMajorObservance
+    }
 
     init(
         date: Date,
@@ -57,7 +79,7 @@ struct SacredObservance: Identifiable, Equatable, Hashable {
         self.ritualSteps = ritualSteps
         self.whyItMatters = whyItMatters
         self.isMajorObservance = isMajorObservance
-        self.id = "\(Self.dayKeyFormatter.string(from: date))-\(title)"
+        self.id = Self.makeGeneratedID(date: date, title: title)
     }
 
     var weekdayLabel: String {
@@ -124,6 +146,10 @@ struct SacredObservance: Identifiable, Equatable, Hashable {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+
+    private static func makeGeneratedID(date: Date, title: String) -> String {
+        "\(dayKeyFormatter.string(from: date))-\(title)"
+    }
 }
 
 enum SacredObservancePlanner {

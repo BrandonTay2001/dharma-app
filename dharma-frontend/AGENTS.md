@@ -12,6 +12,7 @@ dharma/
 │   ├── Scripture.swift            # Scripture, Chapter, Verse + sample data (Gita, Dhammapada)
 │   ├── ChatMessage.swift          # Chat message model
 │   ├── DailyTask.swift            # Daily task model + sample tasks
+│   ├── SacredObservance.swift     # Sacred observance model + 7-day planner for lunar/weekday rituals
 │   └── MeditationStep.swift       # Meditation breathing phases
 ├── ViewModels/
 │   ├── HomeViewModel.swift        # Daily tasks, streak, progress, week calendar, daily completions
@@ -40,6 +41,8 @@ dharma/
     │   └── GratitudeJournalView.swift  # Gratitude writing with prompt chips
     ├── Learn/
     │   └── LearnView.swift             # Topic cards grid (placeholder content)
+    ├── Observance/
+    │   └── SacredObservanceView.swift  # 7-day sacred observance list + observance detail flow
     └── Settings/
         └── SettingsView.swift          # Bottom sheet: Help & Support, Log Out
 ```
@@ -65,7 +68,9 @@ dharma/
 - Daily task completion dates are tracked in the `daily_completions` Supabase table (upserted when all tasks are done)
 - `HomeViewModel` fetches the last 7 days of completions to highlight completed days in `WeekCalendarView`
 - `HomeViewModel.refreshForCurrentContext()` reloads both streak count and recent completion dates from Supabase
+- `HomeViewModel.upcomingSacredDates` uses `SacredObservancePlanner.nextSevenDays()` to surface Hindu/Buddhist observances in the home flow
 - Day changes are handled via `significantTimeChangeNotification` and `scenePhase` observers
+- Sacred observances are currently frontend-generated in `SacredObservance.swift`, combining lunar-phase checks with weekday-based ritual suggestions
 
 ## Building
 

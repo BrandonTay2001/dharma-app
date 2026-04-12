@@ -2,8 +2,22 @@ import SwiftUI
 
 struct SacredObservanceCalendarView: View {
     let observances: [SacredObservance]
+    let isLoading: Bool
+    let errorMessage: String?
     let onDone: () -> Void
     @Environment(\.dismiss) private var dismiss
+
+    init(
+        observances: [SacredObservance],
+        isLoading: Bool = false,
+        errorMessage: String? = nil,
+        onDone: @escaping () -> Void
+    ) {
+        self.observances = observances
+        self.isLoading = isLoading
+        self.errorMessage = errorMessage
+        self.onDone = onDone
+    }
 
     var body: some View {
         NavigationStack {
@@ -85,45 +99,83 @@ struct SacredObservanceCalendarView: View {
                 .font(DharmaTheme.Typography.uiHeadline(18))
                 .foregroundColor(DharmaTheme.Colors.onSurface)
 
-            VStack(spacing: DharmaTheme.Spacing.sm) {
-                ForEach(observances) { observance in
-                    NavigationLink(value: observance) {
-                        HStack(spacing: DharmaTheme.Spacing.md) {
-                            VStack(spacing: 2) {
-                                Text(observance.shortWeekdayLabel)
-                                    .font(DharmaTheme.Typography.uiLabel(10))
+            if isLoading && observances.isEmpty {
+                loadingCard
+            } else if observances.isEmpty {
+                emptyStateCard
+            } else {
+                VStack(spacing: DharmaTheme.Spacing.sm) {
+                    ForEach(observances) { observance in
+                        NavigationLink(value: observance) {
+                            HStack(spacing: DharmaTheme.Spacing.md) {
+                                VStack(spacing: 2) {
+                                    Text(observance.shortWeekdayLabel)
+                                        .font(DharmaTheme.Typography.uiLabel(10))
+                                        .foregroundColor(DharmaTheme.Colors.onSurface)
+
+                                    Text(observance.dayNumber)
+                                        .font(DharmaTheme.Typography.uiHeadline(18))
+                                        .foregroundColor(DharmaTheme.Colors.saffron)
+                                }
+                                .frame(width: 42)
+
+                                Text(observance.tradition.icon)
+                                    .font(.system(size: 14))
+
+                                Text(observance.title)
+                                    .font(DharmaTheme.Typography.uiHeadline(15))
                                     .foregroundColor(DharmaTheme.Colors.onSurface)
+                                    .lineLimit(1)
 
-                                Text(observance.dayNumber)
-                                    .font(DharmaTheme.Typography.uiHeadline(18))
-                                    .foregroundColor(DharmaTheme.Colors.saffron)
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(DharmaTheme.Colors.secondaryText)
                             }
-                            .frame(width: 42)
-
-                            Text(observance.tradition.icon)
-                                .font(.system(size: 14))
-
-                            Text(observance.title)
-                                .font(DharmaTheme.Typography.uiHeadline(15))
-                                .foregroundColor(DharmaTheme.Colors.onSurface)
-                                .lineLimit(1)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(DharmaTheme.Colors.secondaryText)
+                            .padding(.horizontal, DharmaTheme.Spacing.md)
+                            .padding(.vertical, DharmaTheme.Spacing.md)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(DharmaTheme.Colors.surfaceContainerLowest)
+                            .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
                         }
-                        .padding(.horizontal, DharmaTheme.Spacing.md)
-                        .padding(.vertical, DharmaTheme.Spacing.md)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(DharmaTheme.Colors.surfaceContainerLowest)
-                        .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    private var loadingCard: some View {
+        HStack(spacing: DharmaTheme.Spacing.md) {
+            ProgressView()
+                .tint(DharmaTheme.Colors.saffron)
+
+            Text("Loading upcoming observances...")
+                .font(DharmaTheme.Typography.uiBody(15))
+                .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
+
+            Spacer()
+        }
+        .padding(DharmaTheme.Spacing.lg)
+        .background(DharmaTheme.Colors.surfaceContainerLowest)
+        .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
+    }
+
+    private var emptyStateCard: some View {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
+            Text(errorMessage ?? "No sacred observances are available for the next seven days.")
+                .font(DharmaTheme.Typography.uiBody(15))
+                .foregroundColor(DharmaTheme.Colors.onSurfaceVariant)
+
+            Text("Pull down later or reopen this screen after the app refreshes.")
+                .font(DharmaTheme.Typography.uiCaption(13))
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+        }
+        .padding(DharmaTheme.Spacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DharmaTheme.Colors.surfaceContainerLowest)
+        .clipShape(RoundedRectangle(cornerRadius: DharmaTheme.Radius.lg, style: .continuous))
     }
 
 }
@@ -170,7 +222,7 @@ struct SacredObservanceDetailView: View {
                     sectionCard(
                         title: "What To Do",
                         content: observance.suggestedPractice,
-                        backgroundColor: observance.isMajorObservance ? DharmaTheme.Colors.cardHindu : DharmaTheme.Colors.surfaceContainerLowest
+                        backgroundColor: DharmaTheme.Colors.cardHindu
                     )
 
                     VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {

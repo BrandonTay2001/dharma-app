@@ -70,10 +70,15 @@ struct HomeView: View {
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showingSacredDates) {
-            SacredObservanceCalendarView(observances: viewModel.upcomingSacredDates, onDone: {
+            SacredObservanceCalendarView(
+                observances: viewModel.upcomingSacredDates,
+                isLoading: viewModel.isLoadingSacredDates,
+                errorMessage: viewModel.sacredDatesErrorMessage,
+                onDone: {
                 markTaskDone(.sacredDates)
                 showingSacredDates = false
-            })
+                }
+            )
         }
         .task {
             await viewModel.refreshForCurrentContext()

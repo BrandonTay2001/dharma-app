@@ -9,6 +9,9 @@ final class HomeViewModel {
     var tasks: [DailyTask] = DailyTask.sampleTasks
     var streakCount: Int = 0
     var completedDates: Set<String> = []
+    var upcomingSacredDates: [SacredObservance] = []
+    var isLoadingSacredDates = false
+    var sacredDatesErrorMessage: String?
 
     private let progressStore: DailyTaskProgressStore
     private let streakService: UserStreakService
@@ -39,15 +42,12 @@ final class HomeViewModel {
         "\(Int(progressPercentage * 100))%"
     }
 
-    var upcomingSacredDates: [SacredObservance] {
-        SacredObservancePlanner.nextSevenDays()
-    }
-
     func refreshForCurrentContext() async {
         await loadCurrentUser()
         applyStoredProgress()
         await loadStreakCount()
         await loadCompletedDates()
+        await loadUpcomingSacredDates()
         await syncCompletedDayIfNeeded()
     }
     
@@ -177,7 +177,46 @@ final class HomeViewModel {
         }
     }
 
-    private static let dayFormatter: DateFormatter = {
+    private func loadUpcomingSacredDates() async {
+        guard !isLoadingSacredDates else { return }
+
+        let today = Date()
+        guard let sixDaysAhead = Calendar(identifier: .gregorian).date(byAdding: .day, value: 6, to: today) else {
+            return
+        }
+
+        isLoadingSacredDates = true
+        sacredDatesErrorMessage = nil
+        defer { isLoadingSacredDates = false }
+
+        let startDate = Self.dayFormatter.string(from: today)
+        let endDate = Self.dayFormatter.string(from: sixDaysAhead)
+
+        do {
+            let records: [SacredObservanceRecord] = try await supabase
+                .from("observances")
+                .select("id, observance_date, title, tradition, summary, suggested_practice, ritual_steps, why_it_matters, is_major_observance")
+                .gte("observance_date", value: startDate)
+                .lte("observance_date", value: endDate)
+                .order("observance_date", ascending: true)
+                .order("title", ascending: true)
+                .execute()
+                .value
+
+            upcomingSacredDates = records.compactMap(\.observance)
+
+            if upcomingSacredDates.isEmpty {
+                sacredDatesErrorMessage = nil
+            }
+        } catch is CancellationError {
+            return
+        } catch {
+            sacredDatesErrorMessage = "Could not load sacred observances right now."
+            upcomingSacredDates = []
+        }
+    }
+
+    static let dayFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -185,6 +224,46 @@ final class HomeViewModel {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+}
+
+private struct SacredObservanceRecord: Decodable {
+    let id: String
+    let observanceDate: String
+    let title: String
+    let tradition: String
+    let summary: String
+    let suggestedPractice: String
+    let ritualSteps: [String]
+    let whyItMatters: String
+    let isMajorObservance: Bool
+
+    var observance: SacredObservance? {
+        guard let date = HomeViewModel.dayFormatter.date(from: observanceDate),
+              let parsedTradition = SacredObservance.Tradition(rawValue: tradition) else {
+            return nil
+        }
+
+        return SacredObservance(
+            id: id,
+            date: date,
+            title: title,
+            tradition: parsedTradition,
+            summary: summary,
+            suggestedPractice: suggestedPractice,
+            ritualSteps: ritualSteps,
+            whyItMatters: whyItMatters,
+            isMajorObservance: isMajorObservance
+        )
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, tradition, summary
+        case observanceDate = "observance_date"
+        case suggestedPractice = "suggested_practice"
+        case ritualSteps = "ritual_steps"
+        case whyItMatters = "why_it_matters"
+        case isMajorObservance = "is_major_observance"
+    }
 }
 
 private struct DailyCompletionRecord: Decodable {

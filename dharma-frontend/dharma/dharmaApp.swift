@@ -25,7 +25,14 @@ struct dharmaApp: App {
                     }
                 } else if superwallViewModel.hasUnlockedAuthFlow {
                     if authViewModel.isAuthenticated {
-                        ContentView()
+                        if superwallViewModel.isConfigured && !superwallViewModel.isSubscribed {
+                            SubscriptionRequiredView(
+                                superwallViewModel: superwallViewModel,
+                                authViewModel: authViewModel
+                            )
+                        } else {
+                            ContentView()
+                        }
                     } else {
                         SignInView(viewModel: authViewModel)
                     }

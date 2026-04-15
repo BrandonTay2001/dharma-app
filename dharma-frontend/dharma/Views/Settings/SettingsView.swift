@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(AuthViewModel.self) private var authViewModel
     @State private var showingDeleteAccountConfirmation = false
+    @State private var showingSupportFallback = false
+    @State private var showingSupportCopiedConfirmation = false
     
     private let supportEmailAddress = "virality.ventures.apps@gmail.com"
     
@@ -67,9 +70,7 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 // Help & Support
                 Button {
-                    if let supportURL = URL(string: "mailto:\(supportEmailAddress)") {
-                        openURL(supportURL)
-                    }
+                    contactSupport()
                 } label: {
                     HStack(spacing: DharmaTheme.Spacing.md) {
                         Image(systemName: "questionmark.circle")
@@ -169,6 +170,43 @@ struct SettingsView: View {
         } message: {
             Text("This permanently removes your Dharma account and all data tied to it, including your profile, journal entries, streaks, and daily completion history. You will not be able to sign in again with this account.")
         }
+        .confirmationDialog("Contact support", isPresented: $showingSupportFallback, titleVisibility: .visible) {
+            Button("Copy Email Address") {
+                UIPasteboard.general.string = supportEmailAddress
+                showingSupportCopiedConfirmation = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("We couldn't open an email app on this device.")
+        }
+        .alert("Support email copied", isPresented: $showingSupportCopiedConfirmation) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The support email address is now on your clipboard.")
+        }
+    }
+
+    private func contactSupport() {
+        guard let supportURL = supportEmailURL else {
+            showingSupportFallback = true
+            return
+        }
+
+        openURL(supportURL) { accepted in
+            if !accepted {
+                showingSupportFallback = true
+            }
+        }
+    }
+
+    private var supportEmailURL: URL? {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = supportEmailAddress
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: "Dharma Support")
+        ]
+        return components.url
     }
 }
 

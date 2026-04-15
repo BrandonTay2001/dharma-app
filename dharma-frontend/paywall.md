@@ -15,7 +15,8 @@ The `pre_login_access` placement is expected to be configured as a gated placeme
 - `dharma/ViewModels/SuperwallViewModel.swift`: Configures Superwall, tracks subscription state, and presents placements
 - `dharma/Views/Onboarding/OnboardingView.swift`: Multi-step onboarding flow shown before auth
 - `dharma/Views/Onboarding/WelcomeView.swift`: Final onboarding premium screen; Let's go triggers the pre-login placement
-- `dharma/dharmaApp.swift`: Root flow that decides whether to show onboarding, auth, or the main app
+- `dharma/Views/Paywall/SubscriptionRequiredView.swift`: Shown when an authenticated user's subscription is inactive; offers resubscribe, restore, and sign out
+- `dharma/dharmaApp.swift`: Root flow that decides whether to show onboarding, auth, subscription-required, or the main app
 - `dharma/ViewModels/AuthViewModel.swift`: Syncs Supabase auth identity into Superwall via `identify` and `reset`
 
 ## Placements
@@ -30,6 +31,12 @@ Expected behavior:
 - If the user purchases, Superwall unlocks the auth flow
 - If the user dismisses the paywall, the app remains on the welcome screen
 
+The same `pre_login_access` placement is also used from `SubscriptionRequiredView` when an authenticated user's subscription has lapsed (cancellation, billing failure, etc.).
+
+- Triggered when the user taps Resubscribe on the subscription-required screen
+- If the user purchases, Superwall updates subscription status and the app returns to ContentView
+- If the user dismisses the paywall, the app remains on the subscription-required screen
+
 ## Runtime Flow
 
 1. `dharmaApp` creates the shared `SuperwallViewModel`
@@ -41,7 +48,9 @@ Expected behavior:
 7. If the placement feature closure executes, `hasUnlockedAuthFlow` becomes `true`
 8. The app then reveals sign in / sign up
 9. After Supabase auth succeeds, the app identifies the user in Superwall using the Supabase user UUID
-10. On sign out or account deletion, the app resets the Superwall identity and returns to the welcome screen when the user is not subscribed
+10. If the authenticated user's subscription is not active (and Superwall is configured), the app shows `SubscriptionRequiredView` instead of `ContentView`
+11. From `SubscriptionRequiredView`, the user can resubscribe (triggers `subscription_required` placement), restore purchases, or sign out
+12. On sign out or account deletion, the app resets the Superwall identity and returns to the welcome screen when the user is not subscribed
 
 ## User Attributes
 
@@ -64,7 +73,7 @@ Anonymous resets clear these values by setting them to `nil` where appropriate.
 ## Dashboard Assumptions
 
 - A valid Superwall public API key is present in `APIConfig.superwallPublicAPIKey`
-- `pre_login_access` exists and is gated
+- `pre_login_access` exists and is gated (used for both initial purchase and resubscription)
 
 ## When Updating This Flow
 

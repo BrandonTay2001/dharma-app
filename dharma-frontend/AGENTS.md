@@ -43,6 +43,8 @@ dharma/
     │   └── LearnView.swift             # Topic cards grid (placeholder content)
     ├── Observance/
     │   └── SacredObservanceView.swift  # 7-day sacred observance list + observance detail flow
+    ├── Paywall/
+    │   └── SubscriptionRequiredView.swift  # Shown when subscription lapses; resubscribe, restore, sign out
     └── Settings/
         └── SettingsView.swift          # Bottom sheet: Help & Support, Log Out
 ```

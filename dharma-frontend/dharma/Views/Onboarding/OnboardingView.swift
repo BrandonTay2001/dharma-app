@@ -534,7 +534,7 @@ struct OnboardingView: View {
                     .foregroundColor(DharmaTheme.Colors.onSurface)
                     .multilineTextAlignment(.center)
 
-                Text("Stay consistent with your daily verses as widgets, all part of your personalized spirituality plan!")
+                Text("Stay consistent with your daily verses as widgets! Coming soon to Dharma!")
                     .font(DharmaTheme.Typography.uiBody(16))
                     .foregroundColor(DharmaTheme.Colors.secondaryText)
                     .multilineTextAlignment(.center)

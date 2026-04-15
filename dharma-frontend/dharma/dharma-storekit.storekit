@@ -24,7 +24,7 @@
     "_developerTeamID" : "96ZFT3PD83",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 797157339.93400502,
+    "_lastSynchronizedDate" : 797968362.12855196,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -137,7 +137,7 @@
           "groupNumber" : 3,
           "internalID" : "6761495273",
           "introductoryOffer" : {
-            "internalID" : "635DF5DB",
+            "internalID" : "E17E423E",
             "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P3D"
@@ -170,7 +170,7 @@
           "groupNumber" : 2,
           "internalID" : "6761378060",
           "introductoryOffer" : {
-            "internalID" : "C32AF9E2",
+            "internalID" : "22320273",
             "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P3D"

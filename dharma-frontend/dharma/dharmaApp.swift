@@ -23,7 +23,7 @@ struct dharmaApp: App {
                             showSplash = false
                         }
                     }
-                } else if superwallViewModel.hasUnlockedAuthFlow {
+                } else if superwallViewModel.hasCompletedOnboarding && superwallViewModel.hasUnlockedAuthFlow {
                     if authViewModel.isAuthenticated {
                         if superwallViewModel.isConfigured && !superwallViewModel.isSubscribed {
                             SubscriptionRequiredView(

@@ -17,11 +17,18 @@ final class SuperwallViewModel: SuperwallDelegate {
     var hasUnlockedAuthFlow = false
     var errorMessage: String?
 
+    /// Stored property so @Observable can track it; synced with UserDefaults so it resets on uninstall.
+    var hasCompletedOnboarding: Bool = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
+    }
+
     private init() {
         configureIfNeeded()
     }
 
     func presentPreLoginPaywall() {
+        hasCompletedOnboarding = true
+
         guard isConfigured else {
             hasUnlockedAuthFlow = true
             return

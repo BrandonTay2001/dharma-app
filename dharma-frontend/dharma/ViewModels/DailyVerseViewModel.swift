@@ -1,6 +1,9 @@
 import Foundation
 import Observation
 import Supabase
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 @Observable
 @MainActor
@@ -139,7 +142,7 @@ final class DailyVerseViewModel {
 struct DailyVerseStore {
     private let userDefaults: UserDefaults
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = DharmaAppGroup.userDefaults) {
         self.userDefaults = userDefaults
     }
 
@@ -167,6 +170,20 @@ struct DailyVerseStore {
         let payload = DailyVersePayload(dayKey: currentDayKey, verse: verse)
         guard let data = try? JSONEncoder().encode(payload) else { return }
         userDefaults.set(data, forKey: storageKey)
+        userDefaults.set(data, forKey: Self.widgetStorageKey)
+
+#if canImport(WidgetKit)
+        WidgetCenter.shared.reloadAllTimelines()
+#endif
+    }
+
+    func loadWidgetEntry() -> DailyVerseWidgetEntryData? {
+        guard let data = userDefaults.data(forKey: Self.widgetStorageKey),
+              let payload = try? JSONDecoder().decode(DailyVersePayload.self, from: data) else {
+            return nil
+        }
+
+        return DailyVerseWidgetEntryData(dayKey: payload.dayKey, verse: payload.verse)
     }
 
     private func key(for tradition: DailyVerseViewModel.TraditionFilter) -> String {
@@ -177,6 +194,8 @@ struct DailyVerseStore {
         let dayKey: String
         let verse: DailyVerse
     }
+
+    private static let widgetStorageKey = "dailyVerse.widget.cached"
 
     private static let dayFormatter: DateFormatter = {
         let formatter = DateFormatter()

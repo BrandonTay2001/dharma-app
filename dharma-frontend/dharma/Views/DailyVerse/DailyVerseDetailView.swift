@@ -1,11 +1,15 @@
 import SwiftUI
 import UIKit
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 struct DailyVerseDetailView: View {
     @Bindable var viewModel: DailyVerseViewModel
     let onDone: () -> Void
     let onChatToLearnMore: (DailyVerse) -> Void
     @State private var showReflection = false
+    @State private var showWidgetInstructions = false
     @State private var reflectionViewModel = DailyVerseReflectionViewModel(verseType: .hinduVerse)
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -63,6 +67,19 @@ struct DailyVerseDetailView: View {
                 
                 // Bottom action bar
                 HStack(spacing: DharmaTheme.Spacing.sm) {
+                    Button {
+                        addCurrentVerseAsWidget()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "rectangle.grid.2x2")
+                                .font(.system(size: 14))
+                            Text("Add as Widget")
+                                .font(DharmaTheme.Typography.uiCaption())
+                        }
+                    }
+                    .buttonStyle(.ghost)
+                    .disabled(viewModel.verse == nil)
+
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showReflection.toggle()
@@ -167,6 +184,11 @@ struct DailyVerseDetailView: View {
                 reloadReflection()
             }
         }
+        .sheet(isPresented: $showWidgetInstructions) {
+            DailyVerseWidgetInstructionsView(tradition: viewModel.selectedTradition)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private func selectTradition(_ tradition: DailyVerseViewModel.TraditionFilter) async {
@@ -263,6 +285,18 @@ struct DailyVerseDetailView: View {
         showReflection = showReflection || reflectionViewModel.hasReflection
     }
 
+    private func addCurrentVerseAsWidget() {
+        guard let verse = viewModel.verse else { return }
+
+        DailyVerseStore().saveVerse(verse, for: viewModel.selectedTradition)
+
+#if canImport(WidgetKit)
+        WidgetCenter.shared.reloadTimelines(ofKind: DailyVerseWidgetConstants.kind)
+#endif
+
+        showWidgetInstructions = true
+    }
+
     private func verseCardFace(verse: DailyVerse, title: String, bodyText: String, hint: String) -> some View {
         VStack(spacing: DharmaTheme.Spacing.lg) {
             Text(verse.traditionIcon)
@@ -306,6 +340,72 @@ struct DailyVerseDetailView: View {
     }
 }
 
+private struct DailyVerseWidgetInstructionsView: View {
+    let tradition: DailyVerseViewModel.TraditionFilter
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.lg) {
+            Capsule()
+                .fill(DharmaTheme.Colors.outlineVariant)
+                .frame(width: 44, height: 5)
+                .frame(maxWidth: .infinity)
+
+            VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
+                Text("Daily verse ready for your Home Screen")
+                    .font(DharmaTheme.Typography.uiTitle(24))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+
+                Text("Your \(tradition.title.lowercased()) verse is now available to the Dharma widget.")
+                    .font(DharmaTheme.Typography.uiBody())
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+
+            VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
+                DailyVerseWidgetStep(number: "1", text: "Touch and hold your Home Screen until the icons start to jiggle.")
+                DailyVerseWidgetStep(number: "2", text: "Tap Edit or the Add button, then search for Dharma.")
+                DailyVerseWidgetStep(number: "3", text: "Choose the Daily Verse widget size and tap Add Widget.")
+            }
+
+            Text("The widget refreshes automatically whenever today’s verse changes in the app.")
+                .font(DharmaTheme.Typography.uiCaption())
+                .foregroundColor(DharmaTheme.Colors.secondaryText)
+
+            Button("Close") {
+                dismiss()
+            }
+            .buttonStyle(.saffron)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+
+            Spacer(minLength: 0)
+        }
+        .padding(DharmaTheme.Spacing.xl)
+        .background(Color.white)
+    }
+}
+
+private struct DailyVerseWidgetStep: View {
+    let number: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: DharmaTheme.Spacing.md) {
+            Text(number)
+                .font(DharmaTheme.Typography.uiHeadline(14))
+                .foregroundColor(.white)
+                .frame(width: 28, height: 28)
+                .background(DharmaTheme.Colors.saffron)
+                .clipShape(Circle())
+
+            Text(text)
+                .font(DharmaTheme.Typography.uiBody())
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 #Preview {
     DailyVerseDetailView(viewModel: DailyVerseViewModel(), onDone: {}, onChatToLearnMore: { _ in })
 }
+

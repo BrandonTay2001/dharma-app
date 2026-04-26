@@ -52,7 +52,7 @@ struct DailyVerseWidgetEntryView: View {
                 endPoint: .bottomTrailing
             )
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(entry.verse.traditionIcon)
                         .font(.system(size: 24))
@@ -68,22 +68,15 @@ struct DailyVerseWidgetEntryView: View {
                 Text(entry.verse.englishText)
                     .font(.custom("Georgia", size: 17))
                     .foregroundColor(DailyVerseWidgetPalette.onSurface)
-                    .lineLimit(6)
+                    .lineLimit(8)
+                    .minimumScaleFactor(0.82)
+                    .allowsTightening(true)
                     .multilineTextAlignment(.leading)
-
-                Spacer(minLength: 6)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(entry.verse.referenceText)
-                        .font(.system(size: 13, weight: .semibold, design: .default))
-                        .foregroundColor(DailyVerseWidgetPalette.onSurface)
-
-                    Text(entry.verse.traditionLabel)
-                        .font(.system(size: 11, weight: .medium, design: .default))
-                        .foregroundColor(DailyVerseWidgetPalette.secondaryText)
-                }
+                    .frame(maxHeight: .infinity, alignment: .topLeading)
             }
-            .padding(18)
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 14)
         }
         .containerBackground(for: .widget) {
             LinearGradient(

@@ -47,6 +47,12 @@ dharma/
     │   └── SubscriptionRequiredView.swift  # Shown when subscription lapses; resubscribe, restore, sign out
     └── Settings/
         └── SettingsView.swift          # Bottom sheet: Help & Support, Log Out
+
+dharma-widget-extension/
+├── DailyVerseWidget.swift          # Widget timeline/provider/view for the Daily Verse widget
+├── dharma_widget_extension.swift   # Widget bundle entry point
+├── Info.plist                      # Widget extension metadata and bundle versioning
+└── dharma-widget-extension.entitlements # App Group entitlement for shared widget data
 ```
 
 ## Design Conventions
@@ -73,10 +79,25 @@ dharma/
 - `HomeViewModel.upcomingSacredDates` uses `SacredObservancePlanner.nextSevenDays()` to surface Hindu/Buddhist observances in the home flow
 - Day changes are handled via `significantTimeChangeNotification` and `scenePhase` observers
 - Sacred observances are currently frontend-generated in `SacredObservance.swift`, combining lunar-phase checks with weekday-based ritual suggestions
+- Daily Verse widget data is shared through the App Group `group.xyz.618263.dharma`; app-side widget support lives in `dharma/Shared/DailyVerseWidgetSupport.swift`
+- Widget refreshes should go through `WidgetCenter` after writing shared data so the Home Screen widget updates immediately
+
+## Widget Notes
+
+- The project includes a WidgetKit extension target named `dharma-widget-extension` for the Daily Verse widget
+- The widget extension bundle identifier must stay prefixed by the parent app bundle identifier: `xyz.618263.dharma.dharma-widget-extension`
+- The widget Info.plist must include standard extension metadata, including `CFBundleIdentifier`, `CFBundleExecutable`, `CFBundleName`, `CFBundlePackageType`, `CFBundleShortVersionString`, and `CFBundleVersion`; missing version fields cause simulator install failures with `Invalid placeholder attributes`
+- Both the app target and the widget target must include the App Group entitlement `group.xyz.618263.dharma`
+- The main `dharma` scheme should build the widget target as well, otherwise the app can run without producing an embedded `.appex`
+- In the Xcode project, the `Embed App Extensions` copy phase must not be deployment-only; if `runOnlyForDeploymentPostprocessing = 1`, the widget will build separately but not be embedded into the app bundle for simulator runs
+- If the widget does not appear in the widget gallery, first verify the installed app bundle contains `PlugIns/dharma-widget-extension.appex`
 
 ## Building
 
 Open `dharma.xcodeproj` in Xcode, select an iOS Simulator, and run (⌘R).
+
+- For widget changes, run the main `dharma` scheme and confirm the app installs with the embedded widget extension before debugging widget gallery visibility
+- If installation fails with app extension placeholder errors, inspect the widget target's Info.plist version and bundle identifier fields first
 
 ## Paywall
 

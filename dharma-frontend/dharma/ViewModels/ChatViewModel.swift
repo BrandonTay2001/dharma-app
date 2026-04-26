@@ -9,13 +9,17 @@ class ChatViewModel {
     var inputText: String = ""
     var isTyping: Bool = false
     var errorMessage: String?
+    private var isAnimatingResponse: Bool = false
     
     var remainingMessages: Int {
         max(0, dailyLimit - messagesUsedToday)
     }
     
     var canSendMessage: Bool {
-        remainingMessages > 0 && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isTyping
+        remainingMessages > 0
+            && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !isTyping
+            && !isAnimatingResponse
     }
     
     // Conversation history sent to the backend for context
@@ -27,6 +31,7 @@ class ChatViewModel {
         inputText = ""
         errorMessage = nil
         isTyping = false
+        isAnimatingResponse = false
     }
 
     func sendPrefilledMessage(_ text: String, resetConversation: Bool = false) {
@@ -43,7 +48,7 @@ class ChatViewModel {
             return
         }
 
-        guard !isTyping else { return }
+        guard !isTyping && !isAnimatingResponse else { return }
 
         inputText = trimmedText
         sendMessage()
@@ -119,10 +124,10 @@ class ChatViewModel {
                 return
             }
             
-            // Success – append assistant message
-            let aiMessage = ChatMessage(text: reply, isUser: false)
-            messages.append(aiMessage)
             conversationHistory.append(["role": "assistant", "content": reply])
+            isTyping = false
+            await animateAssistantResponse(reply)
+            return
             
         } catch is CancellationError {
             // Task was cancelled, no need to show error
@@ -131,5 +136,32 @@ class ChatViewModel {
         }
         
         isTyping = false
+    }
+
+    private func animateAssistantResponse(_ reply: String) async {
+        let assistantMessageID = UUID()
+        messages.append(ChatMessage(id: assistantMessageID, text: "", isUser: false))
+        isAnimatingResponse = true
+
+        let characterCount = max(reply.count, 1)
+        let frameDelay = UInt64(max(12_000_000, min(28_000_000, 2_000_000_000 / characterCount)))
+
+        for character in reply {
+            guard !Task.isCancelled else {
+                if let index = messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                    messages[index].text = reply
+                }
+                isAnimatingResponse = false
+                return
+            }
+
+            if let index = messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                messages[index].text.append(character)
+            }
+
+            try? await Task.sleep(nanoseconds: frameDelay)
+        }
+
+        isAnimatingResponse = false
     }
 }

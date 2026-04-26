@@ -72,6 +72,7 @@ final class DailyVerseViewModel {
             errorMessage = nil
             loadedDayKeysByTradition[selectedTradition] = currentDayKey
             isShowingTraditionalText = false
+            await prewarmWidgetTraditionsIfNeeded(currentDayKey: currentDayKey, forceReload: forceReload)
             return
         }
 
@@ -80,31 +81,18 @@ final class DailyVerseViewModel {
         defer { isLoading = false }
 
         do {
-            let records: [DailyVerseRecord] = try await supabase
-                .from("scriptures")
-                .select("title, tradition, chapter_number, verse_number, text, traditional_text")
-                .eq("tradition", value: selectedTradition.rawValue)
-                .order("title", ascending: true)
-                .order("chapter_number", ascending: true)
-                .order("verse_number", ascending: true)
-                .limit(10000)
-                .execute()
-                .value
-
-            guard !records.isEmpty else {
+            guard let selectedVerse = try await fetchVerse(for: selectedTradition, currentDayKey: currentDayKey) else {
                 verse = nil
                 errorMessage = "No daily verse is available right now."
                 loadedDayKeysByTradition[selectedTradition] = currentDayKey
                 return
             }
 
-            let index = Self.stableIndex(for: "\(selectedTradition.rawValue)-\(currentDayKey)", count: records.count)
-            let selectedVerse = records[index].asDailyVerse
-
             verse = selectedVerse
             loadedDayKeysByTradition[selectedTradition] = currentDayKey
             isShowingTraditionalText = false
             store.saveVerse(selectedVerse, for: selectedTradition)
+            await prewarmWidgetTraditionsIfNeeded(currentDayKey: currentDayKey, forceReload: forceReload)
         } catch is CancellationError {
             return
         } catch {
@@ -136,6 +124,47 @@ final class DailyVerseViewModel {
         }
 
         return Int(hash % UInt64(count))
+    }
+
+    private func fetchVerse(for tradition: TraditionFilter, currentDayKey: String) async throws -> DailyVerse? {
+        let records: [DailyVerseRecord] = try await supabase
+            .from("scriptures")
+            .select("title, tradition, chapter_number, verse_number, text, traditional_text")
+            .eq("tradition", value: tradition.rawValue)
+            .order("title", ascending: true)
+            .order("chapter_number", ascending: true)
+            .order("verse_number", ascending: true)
+            .limit(10000)
+            .execute()
+            .value
+
+        guard !records.isEmpty else { return nil }
+
+        let index = Self.stableIndex(for: "\(tradition.rawValue)-\(currentDayKey)", count: records.count)
+        return records[index].asDailyVerse
+    }
+
+    private func prewarmWidgetTraditionsIfNeeded(currentDayKey: String, forceReload: Bool) async {
+        for tradition in TraditionFilter.allCases where tradition != selectedTradition {
+            if !forceReload, store.loadVerse(for: tradition) != nil {
+                loadedDayKeysByTradition[tradition] = currentDayKey
+                continue
+            }
+
+            do {
+                guard let verse = try await fetchVerse(for: tradition, currentDayKey: currentDayKey) else {
+                    loadedDayKeysByTradition[tradition] = currentDayKey
+                    continue
+                }
+
+                store.saveVerse(verse, for: tradition)
+                loadedDayKeysByTradition[tradition] = currentDayKey
+            } catch is CancellationError {
+                return
+            } catch {
+                continue
+            }
+        }
     }
 }
 
@@ -175,15 +204,6 @@ struct DailyVerseStore {
 #if canImport(WidgetKit)
         WidgetCenter.shared.reloadAllTimelines()
 #endif
-    }
-
-    func loadWidgetEntry() -> DailyVerseWidgetEntryData? {
-        guard let data = userDefaults.data(forKey: Self.widgetStorageKey),
-              let payload = try? JSONDecoder().decode(DailyVersePayload.self, from: data) else {
-            return nil
-        }
-
-        return DailyVerseWidgetEntryData(dayKey: payload.dayKey, verse: payload.verse)
     }
 
     private func key(for tradition: DailyVerseViewModel.TraditionFilter) -> String {

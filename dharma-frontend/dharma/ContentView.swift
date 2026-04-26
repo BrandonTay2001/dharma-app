@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .today
@@ -7,6 +8,7 @@ struct ContentView: View {
     @State private var chatViewModel = ChatViewModel()
     @State private var learnViewModel = LearnViewModel()
     @State private var dailyVerseViewModel = DailyVerseViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     
     enum Tab: String {
         case chat = "Chat"
@@ -61,6 +63,21 @@ struct ContentView: View {
             .background(DharmaTheme.Colors.surfaceContainerLowest)
         }
         .tint(DharmaTheme.Colors.saffron)
+        .task {
+            await dailyVerseViewModel.loadVerse()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+
+            Task {
+                await dailyVerseViewModel.loadVerse()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            Task {
+                await dailyVerseViewModel.loadVerse(forceReload: true)
+            }
+        }
     }
 
     private func openVerseExplanationChat(for verse: DailyVerse) {

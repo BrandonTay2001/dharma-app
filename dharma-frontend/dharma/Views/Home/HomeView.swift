@@ -13,6 +13,7 @@ struct HomeView: View {
     @State private var showingJournal = false
     @State private var showingSettings = false
     @State private var showingSacredDates = false
+    @State private var showingWidgetInstructions = false
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -28,6 +29,9 @@ struct HomeView: View {
                 
                 // Daily Task Grid
                 taskGrid
+
+                // Widget prompt
+                widgetPromptRow
             }
             .padding(.horizontal, DharmaTheme.Spacing.lg)
             .padding(.bottom, DharmaTheme.Spacing.xxxl)
@@ -79,6 +83,11 @@ struct HomeView: View {
                 showingSacredDates = false
                 }
             )
+        }
+        .sheet(isPresented: $showingWidgetInstructions) {
+            HomeWidgetInstructionsView()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
         .task {
             await viewModel.refreshForCurrentContext()
@@ -184,6 +193,29 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Widget Prompt
+    private var widgetPromptRow: some View {
+        Button {
+            showingWidgetInstructions = true
+        } label: {
+            HStack(spacing: DharmaTheme.Spacing.sm) {
+                Image(systemName: "arrow.up.doc")
+                    .font(.system(size: 16))
+                    .foregroundColor(DharmaTheme.Colors.saffron)
+
+                Text("Adding Daily Verses to the Home Screen?")
+                    .font(DharmaTheme.Typography.uiCaption())
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, DharmaTheme.Spacing.sm)
+            .padding(.horizontal, DharmaTheme.Spacing.md)
+            .background(DharmaTheme.Colors.surface)
+            .cornerRadius(DharmaTheme.Radius.md)
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Actions
     private func handleTaskTap(_ task: DailyTask) {
         switch task.taskType {
@@ -205,6 +237,67 @@ struct HomeView: View {
     private func markTaskDone(_ type: DailyTask.TaskType) {
         if let task = viewModel.tasks.first(where: { $0.taskType == type }) {
             viewModel.markTaskCompleted(task)
+        }
+    }
+}
+
+private struct HomeWidgetInstructionsView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DharmaTheme.Spacing.lg) {
+            Capsule()
+                .fill(DharmaTheme.Colors.outlineVariant)
+                .frame(width: 44, height: 5)
+                .frame(maxWidth: .infinity)
+
+            VStack(alignment: .leading, spacing: DharmaTheme.Spacing.sm) {
+                Text("Add Daily Verses to your Home Screen")
+                    .font(DharmaTheme.Typography.uiTitle(24))
+                    .foregroundColor(DharmaTheme.Colors.onSurface)
+
+                Text("See today's verse at a glance with the Dharma widget.")
+                    .font(DharmaTheme.Typography.uiBody())
+                    .foregroundColor(DharmaTheme.Colors.secondaryText)
+            }
+
+            VStack(alignment: .leading, spacing: DharmaTheme.Spacing.md) {
+                WidgetStep(number: "1", text: "Touch and hold your Home Screen until the icons start to jiggle.")
+                WidgetStep(number: "2", text: "Tap Edit or the Add button, then search for Dharma.")
+                WidgetStep(number: "3", text: "Choose the Daily Verse widget and tap Add Widget.")
+                WidgetStep(number: "4", text: "Touch and hold the widget, choose Edit Widget, then select Hindu or Buddhist.")
+            }
+
+            Button("Close") {
+                dismiss()
+            }
+            .buttonStyle(.saffron)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+
+            Spacer(minLength: 0)
+        }
+        .padding(DharmaTheme.Spacing.xl)
+        .background(Color.white)
+    }
+}
+
+private struct WidgetStep: View {
+    let number: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: DharmaTheme.Spacing.md) {
+            Text(number)
+                .font(DharmaTheme.Typography.uiHeadline(14))
+                .foregroundColor(.white)
+                .frame(width: 28, height: 28)
+                .background(DharmaTheme.Colors.saffron)
+                .clipShape(Circle())
+
+            Text(text)
+                .font(DharmaTheme.Typography.uiBody())
+                .foregroundColor(DharmaTheme.Colors.onSurface)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
